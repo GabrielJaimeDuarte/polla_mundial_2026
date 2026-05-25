@@ -331,9 +331,9 @@ table.thirds tr.qt{background:rgba(74,158,255,.05)}
     </div>
     <div class="how-grid">
       <div class="how-card">
-        <div class="how-icon">1️⃣</div>
-        <div class="how-title">Regístrate</div>
-        <div class="how-desc">Crea tu cuenta con un usuario y contraseña. Tus pronósticos quedan guardados y solo tú puedes modificarlos.</div>
+        <div class="how-icon">🔐</div>
+        <div class="how-title">Acceso por usuario</div>
+        <div class="how-desc">El administrador te asigna un usuario y contraseña. Inicia sesión y tus pronósticos quedan guardados solo para ti.</div>
       </div>
       <div class="how-card">
         <div class="how-icon">⚽</div>
@@ -390,13 +390,13 @@ table.thirds tr.qt{background:rgba(74,158,255,.05)}
       </div>
       <div class="how-card">
         <div class="how-icon">📋</div>
-        <div class="how-title">Cómo registrarse paso a paso</div>
+        <div class="how-title">Cómo empezar paso a paso</div>
         <ol class="step-list" style="margin-top:8px">
-          <li>Haz clic en <strong>"Registrarme"</strong> en la pantalla de inicio</li>
-          <li>Elige un nombre de usuario y una contraseña</li>
+          <li>Recibe tu usuario y contraseña del administrador</li>
+          <li>Inicia sesión en la plataforma</li>
           <li>Ve a <strong>"Mis Partidos"</strong> e ingresa tus pronósticos</li>
+          <li>Puedes editar tus pronósticos <strong>hasta 24h antes</strong> de cada partido</li>
           <li>Pulsa <strong>"Guardar"</strong> para no perder nada</li>
-          <li>Puedes volver a editar tus pronósticos cuando quieras</li>
           <li>Sigue la <strong>"Clasificación"</strong> para ver cómo vas</li>
         </ol>
       </div>
@@ -639,6 +639,33 @@ function calcThirds(matches){
   return t;
 }
 
+
+// ══════════════════════════════════════════
+// BLOQUEO DE EDICIÓN 24H ANTES
+// ══════════════════════════════════════════
+function canEditMatch(matchDate){
+  // Las fechas de partidos en formato "11 Jun", "12 Jun", etc.
+  const monthMap={'Ene':1,'Feb':2,'Mar':3,'Abr':4,'May':5,'Jun':6,'Jul':7,'Ago':8,'Sep':9,'Oct':10,'Nov':11,'Dic':12};
+  const [day,monthStr]=matchDate.split(' ');
+  const month=monthMap[monthStr];
+  const year=2026;
+  const matchDateTime=new Date(year,month-1,parseInt(day),0,0,0).getTime(); // 00:00 del día del partido
+  const now=Date.now();
+  const horasRestantes=(matchDateTime-now)/(1000*60*60);
+  return horasRestantes>24; // Solo permite editar si faltan MÁS de 24 horas
+}
+
+function getBlockMessage(matchDate){
+  const monthMap={'Ene':1,'Feb':2,'Mar':3,'Abr':4,'May':5,'Jun':6,'Jul':7,'Ago':8,'Sep':9,'Oct':10,'Nov':11,'Dic':12};
+  const [day,monthStr]=matchDate.split(' ');
+  const month=monthMap[monthStr];
+  const year=2026;
+  const matchDateTime=new Date(year,month-1,parseInt(day),0,0,0).getTime();
+  const now=Date.now();
+  const horasRestantes=Math.max(0,Math.ceil((matchDateTime-now)/(1000*60*60)));
+  return `Bloqueado. Partido en ${horasRestantes}h`;
+}
+
 // ══════════════════════════════════════════
 // RENDER HELPERS
 // ══════════════════════════════════════════
@@ -693,7 +720,13 @@ function buildMatchesHTML(matches,editable,ctx){
           const p=calcMatchPoints(real,{gh:m.gh,ga:m.ga});
           ptsHtml=`<div class="pts-badge-match">+${p} pts</div>`;
         }
-        return `<div class="mi${played?' played':''}" id="${ctx}-mi-${m.id}">
+        // Para usuarios normales: mostrar si está bloqueado
+        let blockHtml='';
+        if(!isAdmin&&!canEditMatch(m.d)){
+          blockHtml=`<div style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;text-align:center;padding:4px">🔒 BLOQUEADO<br>${getBlockMessage(m.d)}</div>`;
+        }
+        return `<div class="mi${played?' played':''}" id="${ctx}-mi-${m.id}" style="position:relative;opacity:${!isAdmin&&!canEditMatch(m.d)?0.6:1}">
+          ${blockHtml}
           <div class="mth"><span class="tflag">${FLAGS[m.h]||''}</span>${m.h}</div>
           <div style="text-align:center">
             <div class="swrap">
@@ -720,10 +753,30 @@ function buildMatchesHTML(matches,editable,ctx){
 }
 
 function scoreInp(el){
+  // Admin siempre puede editar
+  if(currentPanel==='admin'||isAdmin) {
+    const ctx=el.dataset.ctx,mid=parseInt(el.dataset.mid),side=el.dataset.side;
+    const val=el.value===''?null:parseInt(el.value);
+    const arr=adminMatches;
+    const m=arr.find(x=>x.id===mid);
+    if(side==='h') m.gh=val; else m.ga=val;
+    const item=document.getElementById(`${ctx}-mi-${mid}`);
+    if(item) item.classList.toggle('played',m.gh!==null&&m.ga!==null);
+    return;
+  }
+  
+  // Usuarios normales: verificar bloqueo de 24h
   const ctx=el.dataset.ctx,mid=parseInt(el.dataset.mid),side=el.dataset.side;
+  const m=myMatches.find(x=>x.id===mid);
+  const matchDate=m.d;
+  
+  if(!canEditMatch(matchDate)){
+    el.value='';
+    alert('⏰ Este partido está bloqueado. Solo puedes editar 24 horas antes del partido.');
+    return;
+  }
+  
   const val=el.value===''?null:parseInt(el.value);
-  const arr=ctx==='admin'?adminMatches:myMatches;
-  const m=arr.find(x=>x.id===mid);
   if(side==='h') m.gh=val; else m.ga=val;
   const item=document.getElementById(`${ctx}-mi-${mid}`);
   if(item) item.classList.toggle('played',m.gh!==null&&m.ga!==null);
