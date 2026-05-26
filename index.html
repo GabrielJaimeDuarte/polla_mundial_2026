@@ -190,6 +190,9 @@ table.thirds tr.qt{background:rgba(74,158,255,.05)}
   .tab{padding:11px 10px;font-size:11px}
 }
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
 </head>
 <body>
 
@@ -447,6 +450,23 @@ table.thirds tr.qt{background:rgba(74,158,255,.05)}
 // ══════════════════════════════════════════
 // DATOS
 // ══════════════════════════════════════════
+
+// ══════════════════════════════════════════
+// FIREBASE CONFIG
+// ══════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyD4MRCtXngQqgruDP1cu5Cb6HP9aMbMo5Q",
+  authDomain: "polla-mundial-2026-39b4e.firebaseapp.com",
+  projectId: "polla-mundial-2026-39b4e",
+  storageBucket: "polla-mundial-2026-39b4e.firebasestorage.app",
+  messagingSenderId: "556159455585",
+  appId: "1:556159455585:web:b702f1f3779698e920b520"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const auth = firebase.auth();
+
 const ADMIN_USER='admin', ADMIN_PASS='mundial2026admin';
 const GROUPS={
   A:['México','Corea del Sur','Sudáfrica','República Checa'],
@@ -512,15 +532,24 @@ let myMatches=[], adminMatches=[];
 // STORAGE
 // ══════════════════════════════════════════
 const mkM=()=>MR.map((m,i)=>({...m,id:i,gh:null,ga:null}));
-const getUsers=()=>{try{return JSON.parse(localStorage.getItem('wc2026_users')||'{}')}catch{return{}}};
-const setUsers=u=>localStorage.setItem('wc2026_users',JSON.stringify(u));
-const getReal=()=>{
-  try{
-    const s=JSON.parse(localStorage.getItem('wc2026_real')||'[]');
-    return MR.map((m,i)=>{const f=s.find(x=>x.id===i);return f?{...m,id:i,gh:f.gh,ga:f.ga}:{...m,id:i,gh:null,ga:null}});
-  }catch{return mkM()}
+const getUsers=()=>{
+  if(typeof firebaseUsers!=='undefined') return firebaseUsers;
+  return {};
 };
-const setReal=arr=>localStorage.setItem('wc2026_real',JSON.stringify(arr.map(m=>({id:m.id,gh:m.gh,ga:m.ga}))));
+const setUsers=u=>{
+  firebaseUsers=u;
+  db.ref('users').set(u).catch(e=>console.error('Error saving users:',e));
+};
+let firebaseUsers={};
+const getReal=()=>{
+  if(typeof firebaseReal!=='undefined') return firebaseReal;
+  return mkM();
+};
+const setReal=arr=>{
+  firebaseReal=arr;
+  db.ref('real').set(arr.map(m=>({id:m.id,gh:m.gh,ga:m.ga}))).catch(e=>console.error('Error saving real:',e));
+};
+let firebaseReal=mkM();
 function getUserM(u){
   const users=getUsers();
   if(!users[u]||!users[u].matches) return mkM();
@@ -533,12 +562,29 @@ function saveUserM(u,arr){
   users[u].matches=arr.map(m=>({id:m.id,gh:m.gh,ga:m.ga}));
   setUsers(users);
 }
-function getEjsConfig(){try{return JSON.parse(localStorage.getItem('wc2026_ejs')||'{}')}catch{return{}}}
-function setEjsConfig(c){localStorage.setItem('wc2026_ejs',JSON.stringify(c))}
+function getEjsConfig(){
+  if(typeof firebaseEjs!=='undefined') return firebaseEjs;
+  return {};
+}
+function setEjsConfig(c){
+  firebaseEjs=c;
+  db.ref('ejs').set(c).catch(e=>console.error('Error saving ejs:',e));
+}
+let firebaseEjs={};
 
 // ══════════════════════════════════════════
 // AUTH
 // ══════════════════════════════════════════
+
+
+// Cargar datos de Firebase
+function loadFromFirebase(){
+  return Promise.all([
+    db.ref('users').once('value').then(snap=>{firebaseUsers=snap.val()||{};}),
+    db.ref('real').once('value').then(snap=>{firebaseReal=snap.val()||mkM();}),
+    db.ref('ejs').once('value').then(snap=>{firebaseEjs=snap.val()||{};})
+  ]);
+}
 
 function ensureTestUser(){
   const u=getUsers();
@@ -1000,8 +1046,9 @@ function showPanel(id,btn){
 // INIT
 // ══════════════════════════════════════════
 function init(){
-  myMatches=getUserM(currentUser);
-  adminMatches=getReal();
+  loadFromFirebase().then(()=>{
+    myMatches=getUserM(currentUser);
+    adminMatches=getReal();
   // reset tabs
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelector('.tabs-bar .tab').classList.add('active');
@@ -1011,6 +1058,7 @@ function init(){
     <button class="save-btn email-s" onclick="openEmailModal()">📧 Enviar por email</button>
     <button class="save-btn" onclick="saveCurrentPanel()">💾 Guardar</button>`;
   renderMyStandings();
+  });
 }
 
 ensureTestUser();
