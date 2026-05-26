@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -255,6 +255,7 @@ table.thirds tr.qt{background:rgba(74,158,255,.05)}
   <button class="tab" onclick="showPanel('real',this)">Resultados Reales</button>
   <button class="tab" onclick="showPanel('ranking',this)">🏆 Clasificación</button>
   <button class="tab" onclick="showPanel('how',this)">❓ Cómo Jugar</button>
+  <button class="tab admin-tab" onclick="showPanel('view-predictions',this)" id="viewPredTab" style="display:none">📋 Ver Pronósticos</button>
   <button class="tab admin-tab" onclick="showPanel('admin',this)" id="adminTab" style="display:none">Admin 🔧</button>
 </div>
 
@@ -413,6 +414,15 @@ table.thirds tr.qt{background:rgba(74,158,255,.05)}
     </div>
   </div>
 
+  <!-- VER PRONÓSTICOS DE USUARIOS -->
+  <div id="panel-view-predictions" class="panel">
+    <div class="sec-head">
+      <div class="sec-title">📋 Ver Pronósticos</div>
+      <div class="sec-sub">Todos los pronósticos ingresados por usuario</div>
+    </div>
+    <div id="predictions-container"></div>
+  </div>
+
   <!-- ADMIN PANEL -->
   <div id="panel-admin" class="panel">
     <div class="sec-head">
@@ -452,7 +462,7 @@ const GROUPS={
   K:['Portugal','RD Congo','Uzbekistán','Colombia'],
   L:['Inglaterra','Croacia','Ghana','Panamá']
 };
-const FLAGS={'México':'🇲🇽','Corea del Sur':'🇰🇷','Sudáfrica':'🇿🇦','República Checa':'🇨🇿','Canadá':'🇨🇦','Qatar':'🇶🇦','Suiza':'🇨🇭','Bosnia y Herz.':'🇧🇦','Brasil':'🇧🇷','Marruecos':'🇲🇦','Haití':'🇭🇹','Escocia':'🏴󠁧󠁢󠁳󠁣󠁴󠁿','Estados Unidos':'🇺🇸','Australia':'🇦🇺','Turquía':'🇹🇷','Paraguay':'🇵🇾','Alemania':'🇩🇪','Costa de Marfil':'🇨🇮','Ecuador':'🇪🇨','Curazao':'🇨🇼','Países Bajos':'🇳🇱','Japón':'🇯🇵','Suecia':'🇸🇪','Túnez':'🇹🇳','Bélgica':'🇧🇪','Irán':'🇮🇷','Nueva Zelanda':'🇳🇿','Egipto':'🇪🇬','España':'🇪🇸','Arabia Saudita':'🇸🇦','Uruguay':'🇺🇾','Cabo Verde':'🇨🇻','Francia':'🇫🇷','Senegal':'🇸🇳','Irak':'🇮🇶','Noruega':'🇳🇴','Argentina':'🇦🇷','Argelia':'🇩🇿','Austria':'🇦🇹','Jordania':'🇯🇴','Portugal':'🇵🇹','RD Congo':'🇨🇩','Uzbekistán':'🇺🇿','Colombia':'🇨🇴','Inglaterra':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','Croacia':'🇭🇷','Ghana':'🇬🇭','Panamá':'🇵🇦'};
+const FLAGS={'México':'MX','Corea del Sur':'KR','Sudáfrica':'ZA','República Checa':'CZ','Canadá':'CA','Qatar':'QA','Suiza':'CH','Bosnia y Herz.':'BA','Brasil':'BR','Marruecos':'MA','Haití':'HT','Escocia':'ES','Estados Unidos':'US','Australia':'AU','Turquía':'TR','Paraguay':'PY','Alemania':'DE','Costa de Marfil':'CI','Ecuador':'EC','Curazao':'CW','Países Bajos':'NL','Japón':'JP','Suecia':'SE','Túnez':'TN','Bélgica':'BE','Irán':'IR','Nueva Zelanda':'NZ','Egipto':'EG','España':'ES','Arabia Saudita':'SA','Uruguay':'UY','Cabo Verde':'CV','Francia':'FR','Senegal':'SN','Irak':'IQ','Noruega':'NO','Argentina':'AR','Argelia':'DZ','Austria':'AT','Jordania':'JO','Portugal':'PT','RD Congo':'CD','Uzbekistán':'UZ','Colombia':'CO','Inglaterra':'GB','Croacia':'HR','Ghana':'GH','Panamá':'PA'};
 const MR=[
   {g:'A',d:'11 Jun',h:'México',a:'Sudáfrica'},{g:'A',d:'11 Jun',h:'Corea del Sur',a:'República Checa'},
   {g:'B',d:'12 Jun',h:'Canadá',a:'Bosnia y Herz.'},{g:'D',d:'12 Jun',h:'Estados Unidos',a:'Paraguay'},
@@ -545,8 +555,6 @@ function ensureTestUser(){
   // ═══════════════════════════════════════════════════════════════════════
   
   if(!u['Gabriel']){u['Gabriel']={pass:'Gabriel',matches:[]};setUsers(u);}
-  if(!u['Laura']){u['Laura']={pass:'Laura123',matches:[]};setUsers(u);}
-  if(!u['Padre']){u['Laura']={pass:'Padre123',matches:[]};setUsers(u);}
   // ⬆️ Agrega más usuarios arriba, solo copia la línea y cambia NOMBRE y CONTRASEÑA
 }
 function doLogin(){
@@ -559,6 +567,7 @@ function doLogin(){
     document.body.classList.add('is-admin');
     document.getElementById('loginOverlay').classList.add('hidden');
     document.getElementById('adminTab').style.display='flex';
+    document.getElementById('viewPredTab').style.display='flex';
     document.getElementById('headerUser').innerHTML=`<strong>Admin</strong> <span class="admin-tag">ADMIN</span>`;
     init();return;
   }
@@ -904,6 +913,54 @@ function saveEjsConfig(){
   flash('✓ EmailJS configurado');
 }
 
+
+function renderViewPredictions(){
+  const users=getUsers();
+  const rm=getReal();
+  let html='<div style="max-width:100%;overflow-x:auto">';
+  
+  Object.keys(users).forEach(username=>{
+    const um=getUserM(username);
+    const playedMatches=um.filter(m=>m.gh!==null).length;
+    html+=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem">
+      <div style="font-size:16px;font-weight:700;color:var(--accent);margin-bottom:0.75rem">${username}</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:0.75rem">${playedMatches} partidos ingresados</div>`;
+    
+    const byDay={};
+    um.filter(m=>m.gh!==null).forEach(m=>{if(!byDay[m.d])byDay[m.d]=[];byDay[m.d].push(m);});
+    
+    if(Object.keys(byDay).length===0){
+      html+='<div style="color:var(--muted);font-size:13px">Sin pronósticos aún</div>';
+    } else {
+      html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px">';
+      Object.keys(byDay).forEach(day=>{
+        byDay[day].forEach(m=>{
+          const real=rm.find(r=>r.id===m.id);
+          const realStr=real&&real.gh!==null?`${real.gh}-${real.ga}`:'-';
+          const pts=real&&real.gh!==null?calcMatchPoints(real,{gh:m.gh,ga:m.ga}):'−';
+          html+=`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px;font-size:12px">
+            <div style="color:var(--muted);font-size:10px;margin-bottom:4px">${m.d}</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <span>${m.h}</span><span style="font-weight:700">vs</span><span>${m.a}</span>
+            </div>
+            <div style="text-align:center;padding:4px;background:var(--bg);border-radius:4px;margin-bottom:4px">
+              <div style="font-weight:700;font-size:14px">${m.gh}-${m.ga}</div>
+              <div style="font-size:10px;color:var(--muted)">Real: ${realStr}</div>
+            </div>
+            <div style="text-align:center;color:var(--accent);font-weight:600">+${pts} pts</div>
+          </div>`;
+        });
+      });
+      html+='</div>';
+    }
+    html+='</div>';
+  });
+  
+  html+='</div>';
+  document.getElementById('predictions-container').innerHTML=html;
+}
+
+
 // ══════════════════════════════════════════
 // TABS
 // ══════════════════════════════════════════
@@ -920,6 +977,9 @@ function showPanel(id,btn){
     sb.style.display='none';
     if(id==='real') renderRealPanel();
     if(id==='ranking') renderRanking();
+  } else if(id==='view-predictions'&&isAdmin){
+    sb.style.display='none';
+    renderViewPredictions();
   } else if(id==='admin'){
     sb.style.display='flex';
     brow.innerHTML=`
