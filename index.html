@@ -782,7 +782,9 @@ function calcStandings(groupName, matchList) {
     GROUPS[groupName].forEach(t => { st[t]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0}; });
     for (const m of ALL_MATCHES.filter(x=>x.group===groupName)) {
         const um = matchList.find(x=>x.id===m.id);
-        const gh = um?.gh ?? 0, ga = um?.ga ?? 0;
+        // Solo contar si el usuario llenó el partido
+        if (!um || um.gh===undefined || um.gh===null || um.gh==='' || um.ga===undefined || um.ga===null || um.ga==='') continue;
+        const gh = parseInt(um.gh), ga = parseInt(um.ga);
         st[m.home].p++; st[m.away].p++;
         st[m.home].gf+=gh; st[m.home].ga+=ga;
         st[m.away].gf+=ga; st[m.away].ga+=gh;
@@ -881,9 +883,16 @@ function saveMyMatches() {
     const users = getUsers();
     const matches = [];
     for (const m of ALL_MATCHES) {
-        const gh=parseInt(document.getElementById(`gh_${m.id}`)?.value??-1);
-        const ga=parseInt(document.getElementById(`ga_${m.id}`)?.value??-1);
-        if (gh>=0&&ga>=0) matches.push({id:m.id,gh,ga});
+        const ghVal = document.getElementById(`gh_${m.id}`)?.value;
+        const gaVal = document.getElementById(`ga_${m.id}`)?.value;
+        // Solo guardar si ambos campos tienen valor
+        if (ghVal !== '' && gaVal !== '' && ghVal !== undefined && gaVal !== undefined) {
+            const gh = parseInt(ghVal);
+            const ga = parseInt(gaVal);
+            if (!isNaN(gh) && !isNaN(ga) && gh >= 0 && ga >= 0) {
+                matches.push({id:m.id, gh, ga});
+            }
+        }
     }
     users[currentUser].matches = matches;
     setUsers(users);
