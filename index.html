@@ -182,20 +182,28 @@
         .diff-zero{color:#888}
 
         /* ── PARTIDOS ── */
+        .matches-grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fill,minmax(380px,1fr));
+            gap:8px;
+        }
         .match-card{
             background:#0f1428;
-            border-radius:8px;
-            padding:16px 20px;
-            margin-bottom:12px;
+            border-radius:6px;
+            padding:10px 14px;
             border-left:3px solid #1e2a3a;
         }
         .match-card.locked{opacity:0.6;position:relative}
         .match-meta{
             display:flex;
             justify-content:space-between;
-            font-size:0.8em;
-            color:#555;
-            margin-bottom:12px;
+            align-items:center;
+            margin-bottom:8px;
+        }
+        .match-date{
+            font-size:0.85em;
+            color:#aaa;
+            font-weight:bold;
             letter-spacing:1px;
         }
         .match-meta .group-badge{
@@ -211,22 +219,22 @@
             gap:10px;
             align-items:center;
         }
-        .team-left{text-align:right;font-size:1em;font-weight:bold;display:flex;align-items:center;justify-content:flex-end;gap:8px}
-        .team-right{text-align:left;font-size:1em;font-weight:bold;display:flex;align-items:center;gap:8px}
+        .team-left{text-align:right;font-size:0.88em;font-weight:bold;display:flex;align-items:center;justify-content:flex-end;gap:6px}
+        .team-right{text-align:left;font-size:0.88em;font-weight:bold;display:flex;align-items:center;gap:6px}
         .score-box{
             display:flex;
             align-items:center;
             gap:6px;
         }
         .score-inp{
-            width:52px;
-            padding:8px 4px;
+            width:44px;
+            padding:5px 2px;
             background:#161b2e;
             border:1px solid #2a3a5a;
-            border-radius:6px;
+            border-radius:5px;
             color:#f5c518;
             text-align:center;
-            font-size:1.3em;
+            font-size:1.1em;
             font-weight:bold;
             font-family:'Bebas Neue',cursive;
         }
@@ -736,7 +744,7 @@ function renderMyMatches() {
         h += `<div class="match-card">
             <div class="match-meta">
                 <span class="group-badge">GRUPO ${m.group}</span>
-                <span>${m.date}</span>
+                <span class="match-date">📅 ${m.date}</span>
             </div>
             <div class="match-row">
                 <div class="team-left"><span>${m.home}</span>${flag(m.home)}</div>
@@ -749,7 +757,7 @@ function renderMyMatches() {
             </div>
         </div>`;
     }
-    document.getElementById('myMatchesContainer').innerHTML = h;
+    document.getElementById('myMatchesContainer').innerHTML = '<div class="matches-grid">' + h + '</div>';
     document.getElementById('btnRow').innerHTML = `
         <button class="btn-save" onclick="saveMyMatches()">💾 Guardar</button>
         <button class="btn-sec" onclick="sendEmail()">📧 Enviar por email</button>
