@@ -182,6 +182,17 @@
         .diff-zero{color:#888}
 
         /* ── PARTIDOS ── */
+        .date-section{margin-bottom:28px}
+        .date-header{
+            font-family:'Bebas Neue',cursive;
+            font-size:1.4em;
+            letter-spacing:3px;
+            color:#f5c518;
+            padding:10px 14px;
+            background:#1a2540;
+            border-radius:6px;
+            margin-bottom:10px;
+        }
         .matches-grid{
             display:grid;
             grid-template-columns:repeat(auto-fill,minmax(380px,1fr));
@@ -737,27 +748,48 @@ function renderMyStandings() {
 function renderMyMatches() {
     const users = getUsers();
     const um = users[currentUser]?.matches || [];
-    let h = '';
+
+    // Agrupar partidos por fecha
+    const byDate = {};
     for (const m of ALL_MATCHES) {
-        const u = um.find(x=>x.id===m.id);
-        const gh=u?.gh??'', ga=u?.ga??'';
-        h += `<div class="match-card">
-            <div class="match-meta">
-                <span class="group-badge">GRUPO ${m.group}</span>
-                <span class="match-date">📅 ${m.date}</span>
-            </div>
-            <div class="match-row">
-                <div class="team-left"><span>${m.home}</span>${flag(m.home)}</div>
-                <div class="score-box">
-                    <input type="number" class="score-inp" id="gh_${m.id}" value="${gh}" placeholder="0" min="0">
-                    <span class="score-sep">-</span>
-                    <input type="number" class="score-inp" id="ga_${m.id}" value="${ga}" placeholder="0" min="0">
-                </div>
-                <div class="team-right">${flag(m.away)}<span>${m.away}</span></div>
-            </div>
-        </div>`;
+        if (!byDate[m.date]) byDate[m.date] = [];
+        byDate[m.date].push(m);
     }
-    document.getElementById('myMatchesContainer').innerHTML = '<div class="matches-grid">' + h + '</div>';
+
+    let h = '';
+    for (const date of Object.keys(byDate).sort()) {
+        // Formato bonito: 2026-06-11 → Jue 11 Jun 2026
+        const d = new Date(date + 'T12:00:00');
+        const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+        const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        const label = `${dias[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}`;
+
+        h += `<div class="date-section">
+            <div class="date-header">📅 ${label}</div>
+            <div class="matches-grid">`;
+
+        for (const m of byDate[date]) {
+            const u = um.find(x=>x.id===m.id);
+            const gh=u?.gh??'', ga=u?.ga??'';
+            h += `<div class="match-card">
+                <div class="match-meta">
+                    <span class="group-badge">GRUPO ${m.group}</span>
+                </div>
+                <div class="match-row">
+                    <div class="team-left"><span>${m.home}</span>${flag(m.home)}</div>
+                    <div class="score-box">
+                        <input type="number" class="score-inp" id="gh_${m.id}" value="${gh}" placeholder="0" min="0">
+                        <span class="score-sep">-</span>
+                        <input type="number" class="score-inp" id="ga_${m.id}" value="${ga}" placeholder="0" min="0">
+                    </div>
+                    <div class="team-right">${flag(m.away)}<span>${m.away}</span></div>
+                </div>
+            </div>`;
+        }
+        h += '</div></div>';
+    }
+
+    document.getElementById('myMatchesContainer').innerHTML = h;
     document.getElementById('btnRow').innerHTML = `
         <button class="btn-save" onclick="saveMyMatches()">💾 Guardar</button>
         <button class="btn-sec" onclick="sendEmail()">📧 Enviar por email</button>
