@@ -474,6 +474,7 @@
             <div class="btn-row">
                 <button class="btn-save" onclick="saveRealResults()">&#128190; Guardar Resultados</button>
                 <button class="btn-sec" onclick="openEmailConfig()">&#9881;&#65039; Config Email</button>
+                <button class="btn-sec" onclick="resetAllUserMatches()" style="border-color:#f44336;color:#f44336">🗑️ Limpiar pronósticos usuarios</button>
             </div>
         </div>
         <div class="email-config" id="emailConfigPanel" style="display:none">
@@ -782,9 +783,12 @@ function calcStandings(groupName, matchList) {
     GROUPS[groupName].forEach(t => { st[t]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0}; });
     for (const m of ALL_MATCHES.filter(x=>x.group===groupName)) {
         const um = matchList.find(x=>x.id===m.id);
-        // Solo contar si el usuario llenó el partido
-        if (!um || um.gh===undefined || um.gh===null || um.gh==='' || um.ga===undefined || um.ga===null || um.ga==='') continue;
-        const gh = parseInt(um.gh), ga = parseInt(um.ga);
+        // Solo contar si el partido existe en la lista Y tiene valores numéricos válidos
+        if (!um) continue;
+        if (um.gh===undefined || um.gh===null || um.gh==='') continue;
+        if (um.ga===undefined || um.ga===null || um.ga==='') continue;
+        const gh = Number(um.gh), ga = Number(um.ga);
+        if (isNaN(gh) || isNaN(ga)) continue;
         st[m.home].p++; st[m.away].p++;
         st[m.home].gf+=gh; st[m.home].ga+=ga;
         st[m.away].gf+=ga; st[m.away].ga+=gh;
@@ -1045,6 +1049,16 @@ function sendEmail() {
     }
     emailjs.send(cfg.serviceId,cfg.templateId,{from_name:currentUser,message:txt,reply_to:currentUser+'@polla.com',to_email:cfg.adminMail})
         .then(()=>alert('✅ Email enviado')).catch(e=>alert('❌ Error: '+e));
+}
+
+function resetAllUserMatches() {
+    if (!confirm('¿Seguro? Esto borra TODOS los pronósticos de todos los usuarios.')) return;
+    const users = getUsers();
+    for (const u in users) {
+        users[u].matches = [];
+    }
+    setUsers(users);
+    alert('✅ Pronósticos limpiados');
 }
 
 function openEmailConfig() {
