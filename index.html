@@ -7,6 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/html2pdf@0.10.1/dist/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/index.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
     <style>
         * {
             margin: 0;
@@ -459,7 +461,28 @@
     </div>
 
     <script>
-        // localStorage only (sin Firebase)
+        // Esperar a que Firebase cargue
+        let db;
+        
+        function initFirebase() {
+            const firebaseConfig = {
+                apiKey: "AIzaSyD4MRCtXngQqgruDP1cu5Cb6HP9aMbMo5Q",
+                authDomain: "polla-mundial-2026-39b4e.firebaseapp.com",
+                projectId: "polla-mundial-2026-39b4e",
+                storageBucket: "polla-mundial-2026-39b4e.firebasestorage.app",
+                messagingSenderId: "556159455585",
+                appId: "1:556159455585:web:b702f1f3779698e920b520"
+            };
+            
+            if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length === 0) {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.database();
+            } else if (typeof firebase === 'undefined') {
+                setTimeout(initFirebase, 100);
+            }
+        }
+
+        initFirebase();
 
         const ADMIN_USER = "admin";
         const ADMIN_PASS = "mundial2026admin";
@@ -514,6 +537,33 @@
             }
         }
 
+        function loadAllFromFirebase(callback) {
+            if (!db) {
+                // Si Firebase no está listo, esperar un poco y reintentar
+                setTimeout(() => loadAllFromFirebase(callback), 300);
+                return;
+            }
+
+            const promises = [
+                db.ref('users').once('value').then(snap => {
+                    if (snap.val()) localStorage.setItem('wc2026_users', JSON.stringify(snap.val()));
+                }),
+                db.ref('real').once('value').then(snap => {
+                    if (snap.val()) localStorage.setItem('wc2026_real', JSON.stringify(snap.val()));
+                }),
+                db.ref('ejs').once('value').then(snap => {
+                    if (snap.val()) localStorage.setItem('wc2026_ejs', JSON.stringify(snap.val()));
+                })
+            ];
+
+            Promise.all(promises)
+                .then(() => callback())
+                .catch(err => {
+                    console.error('Firebase error:', err);
+                    callback(); // continuar aunque falle
+                });
+        }
+
         function getUsers() {
             const stored = localStorage.getItem('wc2026_users');
             return stored ? JSON.parse(stored) : {};
@@ -521,6 +571,9 @@
 
         function setUsers(users) {
             localStorage.setItem('wc2026_users', JSON.stringify(users));
+            if (db) {
+                db.ref('users').set(users).catch(e => console.log('Firebase sync:', e));
+            }
         }
 
         function getReal() {
@@ -531,6 +584,9 @@
 
         function setReal(results) {
             localStorage.setItem('wc2026_real', JSON.stringify(results));
+            if (db) {
+                db.ref('real').set(results).catch(e => console.log('Firebase sync:', e));
+            }
         }
 
         function getEjsConfig() {
@@ -540,6 +596,9 @@
 
         function setEjsConfig(config) {
             localStorage.setItem('wc2026_ejs', JSON.stringify(config));
+            if (db) {
+                db.ref('ejs').set(config).catch(e => console.log('Firebase sync:', e));
+            }
         }
 
         function ensureTestUser() {
@@ -560,22 +619,37 @@
                 return;
             }
 
-            let users = getUsers();
-
+            // Admin no necesita Firebase
             if (username === ADMIN_USER && password === ADMIN_PASS) {
                 currentUser = username;
-                showApp();
-            } else if (users[username] && users[username].pass === password) {
-                currentUser = username;
-                showApp();
-            } else if (!users[username]) {
-                users[username] = { pass: password, matches: [] };
-                setUsers(users);
-                currentUser = username;
-                showApp();
-            } else {
-                alert('Usuario o contraseña incorrectos');
+                // Admin también carga datos reales desde Firebase
+                loadAllFromFirebase(() => showApp());
+                return;
             }
+
+            // Para usuarios normales: cargar desde Firebase primero
+            const btn = document.querySelector('.btn-primary');
+            btn.textContent = 'Cargando...';
+            btn.disabled = true;
+
+            loadAllFromFirebase(() => {
+                btn.textContent = 'ENTRAR ⚽';
+                btn.disabled = false;
+
+                let users = getUsers();
+
+                if (users[username] && users[username].pass === password) {
+                    currentUser = username;
+                    showApp();
+                } else if (!users[username]) {
+                    users[username] = { pass: password, matches: [] };
+                    setUsers(users);
+                    currentUser = username;
+                    showApp();
+                } else {
+                    alert('Usuario o contraseña incorrectos');
+                }
+            });
         }
 
         function logout() {
