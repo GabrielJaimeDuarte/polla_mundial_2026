@@ -631,9 +631,7 @@ const GROUPS = {
 
 // Fixture real FIFA 2026 - fase de grupos (72 partidos)
 const ALL_MATCHES = [
-    // ── PARTIDO DE PRUEBA (borrar después) ──
-    {id:99,group:"A",home:"🧪 PRUEBA",away:"(se bloquea 27 May 00:00)",date:"2026-05-27"},
-    // ──────────────────────────────────────────
+
     // Jue 11 Jun
     {id:0,group:"A",home:"México",away:"Sudáfrica",date:"2026-06-11"},
     {id:1,group:"A",home:"Corea del Sur",away:"República Checa",date:"2026-06-11"},
@@ -890,6 +888,7 @@ function calcStandings(groupName, matchList) {
         if (um.ga===undefined || um.ga===null || um.ga==='') continue;
         const gh = Number(um.gh), ga = Number(um.ga);
         if (isNaN(gh) || isNaN(ga)) continue;
+        if (!st[m.home] || !st[m.away]) continue;
         st[m.home].p++; st[m.away].p++;
         st[m.home].gf+=gh; st[m.home].ga+=ga;
         st[m.away].gf+=ga; st[m.away].ga+=gh;
