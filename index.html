@@ -643,83 +643,83 @@ const GROUPS = {
     L:["Inglaterra","Croacia","Ghana","Panamá"]
 };
 
-// Fixture real FIFA 2026 - 72 partidos fase de grupos
+// Fixture real FIFA 2026 - 72 partidos fase de grupos (horario Colombia)
 const ALL_MATCHES = [
     // ── JORNADA 1 ──
-    {id:0, group:"A", home:"México",          away:"Sudáfrica",          date:"2026-06-11"},
-    {id:1, group:"A", home:"Corea del Sur",   away:"República Checa",    date:"2026-06-12"},
-    {id:2, group:"B", home:"Canadá",          away:"Bosnia y Herzegovina",date:"2026-06-12"},
-    {id:3, group:"D", home:"Estados Unidos",  away:"Paraguay",           date:"2026-06-13"},
-    {id:4, group:"B", home:"Qatar",           away:"Suiza",              date:"2026-06-13"},
-    {id:5, group:"C", home:"Brasil",          away:"Marruecos",          date:"2026-06-14"},
-    {id:6, group:"C", home:"Haití",           away:"Escocia",            date:"2026-06-14"},
-    {id:7, group:"D", home:"Australia",       away:"Turquía",            date:"2026-06-14"},
-    {id:8, group:"E", home:"Alemania",        away:"Curazao",            date:"2026-06-14"},
-    {id:9, group:"F", home:"Países Bajos",    away:"Japón",              date:"2026-06-14"},
-    {id:10,group:"E", home:"Costa de Marfil", away:"Ecuador",            date:"2026-06-15"},
-    {id:11,group:"F", home:"Suecia",          away:"Túnez",              date:"2026-06-15"},
-    {id:12,group:"H", home:"España",          away:"Cabo Verde",         date:"2026-06-15"},
-    {id:13,group:"G", home:"Bélgica",         away:"Egipto",             date:"2026-06-15"},
-    {id:14,group:"H", home:"Arabia Saudita",  away:"Uruguay",            date:"2026-06-16"},
-    {id:15,group:"G", home:"Irán",            away:"Nueva Zelanda",      date:"2026-06-16"},
-    {id:16,group:"I", home:"Francia",         away:"Senegal",            date:"2026-06-16"},
-    {id:17,group:"I", home:"Irak",            away:"Noruega",            date:"2026-06-17"},
-    {id:18,group:"J", home:"Argentina",       away:"Argelia",            date:"2026-06-17"},
-    {id:19,group:"J", home:"Austria",         away:"Jordania",           date:"2026-06-17"},
-    {id:20,group:"K", home:"Portugal",        away:"RD Congo",           date:"2026-06-17"},
-    {id:21,group:"L", home:"Inglaterra",      away:"Croacia",            date:"2026-06-17"},
-    {id:22,group:"L", home:"Ghana",           away:"Panamá",             date:"2026-06-18"},
-    {id:23,group:"K", home:"Uzbekistán",      away:"Colombia",           date:"2026-06-18"},
+    {id:0, group:"A", home:"México",               away:"Sudáfrica",           date:"2026-06-11", time:"2:00 PM"},
+    {id:1, group:"A", home:"Corea del Sur",         away:"República Checa",     date:"2026-06-11", time:"9:00 PM"},
+    {id:2, group:"B", home:"Canadá",               away:"Bosnia y Herzegovina", date:"2026-06-12", time:"2:00 PM"},
+    {id:3, group:"D", home:"Estados Unidos",        away:"Paraguay",            date:"2026-06-12", time:"8:00 PM"},
+    {id:4, group:"B", home:"Qatar",                away:"Suiza",               date:"2026-06-13", time:"2:00 PM"},
+    {id:5, group:"C", home:"Brasil",               away:"Marruecos",           date:"2026-06-13", time:"5:00 PM"},
+    {id:6, group:"C", home:"Haití",                away:"Escocia",             date:"2026-06-13", time:"8:00 PM"},
+    {id:7, group:"D", home:"Australia",            away:"Turquía",             date:"2026-06-13", time:"11:00 PM"},
+    {id:8, group:"E", home:"Alemania",             away:"Curazao",             date:"2026-06-14", time:"12:00 PM"},
+    {id:9, group:"F", home:"Países Bajos",         away:"Japón",               date:"2026-06-14", time:"3:00 PM"},
+    {id:10,group:"E", home:"Costa de Marfil",      away:"Ecuador",             date:"2026-06-14", time:"6:00 PM"},
+    {id:11,group:"F", home:"Suecia",               away:"Túnez",               date:"2026-06-14", time:"9:00 PM"},
+    {id:12,group:"H", home:"España",               away:"Cabo Verde",          date:"2026-06-15", time:"11:00 AM"},
+    {id:13,group:"G", home:"Bélgica",              away:"Egipto",              date:"2026-06-15", time:"2:00 PM"},
+    {id:14,group:"H", home:"Arabia Saudita",       away:"Uruguay",             date:"2026-06-15", time:"5:00 PM"},
+    {id:15,group:"G", home:"Irán",                 away:"Nueva Zelanda",       date:"2026-06-15", time:"8:00 PM"},
+    {id:16,group:"I", home:"Francia",              away:"Senegal",             date:"2026-06-16", time:"2:00 PM"},
+    {id:17,group:"I", home:"Irak",                 away:"Noruega",             date:"2026-06-16", time:"5:00 PM"},
+    {id:18,group:"J", home:"Argentina",            away:"Argelia",             date:"2026-06-16", time:"8:00 PM"},
+    {id:19,group:"J", home:"Austria",              away:"Jordania",            date:"2026-06-16", time:"11:00 PM"},
+    {id:20,group:"K", home:"Portugal",             away:"RD Congo",            date:"2026-06-17", time:"12:00 PM"},
+    {id:21,group:"L", home:"Inglaterra",           away:"Croacia",             date:"2026-06-17", time:"3:00 PM"},
+    {id:22,group:"L", home:"Ghana",                away:"Panamá",              date:"2026-06-17", time:"6:00 PM"},
+    {id:23,group:"K", home:"Uzbekistán",           away:"Colombia",            date:"2026-06-17", time:"9:00 PM"},
     // ── JORNADA 2 ──
-    {id:24,group:"A", home:"República Checa", away:"Sudáfrica",          date:"2026-06-18"},
-    {id:25,group:"B", home:"Suiza",           away:"Bosnia y Herzegovina",date:"2026-06-18"},
-    {id:26,group:"B", home:"Canadá",          away:"Qatar",              date:"2026-06-19"},
-    {id:27,group:"A", home:"México",          away:"Corea del Sur",      date:"2026-06-19"},
-    {id:28,group:"D", home:"Estados Unidos",  away:"Australia",          date:"2026-06-19"},
-    {id:29,group:"C", home:"Escocia",         away:"Marruecos",          date:"2026-06-20"},
-    {id:30,group:"C", home:"Brasil",          away:"Haití",              date:"2026-06-20"},
-    {id:31,group:"D", home:"Turquía",         away:"Paraguay",           date:"2026-06-20"},
-    {id:32,group:"F", home:"Países Bajos",    away:"Suecia",             date:"2026-06-20"},
-    {id:33,group:"E", home:"Alemania",        away:"Costa de Marfil",    date:"2026-06-20"},
-    {id:34,group:"E", home:"Ecuador",         away:"Curazao",            date:"2026-06-21"},
-    {id:35,group:"F", home:"Túnez",           away:"Japón",              date:"2026-06-21"},
-    {id:36,group:"H", home:"España",          away:"Arabia Saudita",     date:"2026-06-21"},
-    {id:37,group:"G", home:"Bélgica",         away:"Irán",               date:"2026-06-21"},
-    {id:38,group:"H", home:"Uruguay",         away:"Cabo Verde",         date:"2026-06-22"},
-    {id:39,group:"G", home:"Nueva Zelanda",   away:"Egipto",             date:"2026-06-22"},
-    {id:40,group:"J", home:"Argentina",       away:"Austria",            date:"2026-06-22"},
-    {id:41,group:"I", home:"Francia",         away:"Irak",               date:"2026-06-22"},
-    {id:42,group:"I", home:"Noruega",         away:"Senegal",            date:"2026-06-23"},
-    {id:43,group:"J", home:"Jordania",        away:"Argelia",            date:"2026-06-23"},
-    {id:44,group:"K", home:"Portugal",        away:"Uzbekistán",         date:"2026-06-23"},
-    {id:45,group:"L", home:"Inglaterra",      away:"Ghana",              date:"2026-06-23"},
-    {id:46,group:"L", home:"Panamá",          away:"Croacia",            date:"2026-06-24"},
-    {id:47,group:"K", home:"Colombia",        away:"RD Congo",           date:"2026-06-24"},
+    {id:24,group:"A", home:"República Checa",      away:"Sudáfrica",           date:"2026-06-18", time:"11:00 AM"},
+    {id:25,group:"B", home:"Suiza",                away:"Bosnia y Herzegovina", date:"2026-06-18", time:"2:00 PM"},
+    {id:26,group:"B", home:"Canadá",               away:"Qatar",               date:"2026-06-18", time:"5:00 PM"},
+    {id:27,group:"A", home:"México",               away:"Corea del Sur",       date:"2026-06-18", time:"8:00 PM"},
+    {id:28,group:"D", home:"Estados Unidos",        away:"Australia",           date:"2026-06-19", time:"2:00 PM"},
+    {id:29,group:"C", home:"Escocia",              away:"Marruecos",           date:"2026-06-19", time:"5:00 PM"},
+    {id:30,group:"C", home:"Brasil",               away:"Haití",               date:"2026-06-19", time:"8:00 PM"},
+    {id:31,group:"D", home:"Turquía",              away:"Paraguay",            date:"2026-06-19", time:"11:00 PM"},
+    {id:32,group:"F", home:"Países Bajos",         away:"Suecia",              date:"2026-06-20", time:"12:00 PM"},
+    {id:33,group:"E", home:"Alemania",             away:"Costa de Marfil",     date:"2026-06-20", time:"3:00 PM"},
+    {id:34,group:"E", home:"Ecuador",              away:"Curazao",             date:"2026-06-20", time:"7:00 PM"},
+    {id:35,group:"F", home:"Túnez",                away:"Japón",               date:"2026-06-20", time:"11:00 PM"},
+    {id:36,group:"H", home:"España",               away:"Arabia Saudita",      date:"2026-06-21", time:"11:00 AM"},
+    {id:37,group:"G", home:"Bélgica",              away:"Irán",                date:"2026-06-21", time:"2:00 PM"},
+    {id:38,group:"H", home:"Uruguay",              away:"Cabo Verde",          date:"2026-06-21", time:"5:00 PM"},
+    {id:39,group:"G", home:"Nueva Zelanda",        away:"Egipto",              date:"2026-06-21", time:"8:00 PM"},
+    {id:40,group:"J", home:"Argentina",            away:"Austria",             date:"2026-06-22", time:"12:00 PM"},
+    {id:41,group:"I", home:"Francia",              away:"Irak",                date:"2026-06-22", time:"4:00 PM"},
+    {id:42,group:"I", home:"Noruega",              away:"Senegal",             date:"2026-06-22", time:"7:00 PM"},
+    {id:43,group:"J", home:"Jordania",             away:"Argelia",             date:"2026-06-22", time:"11:00 PM"},
+    {id:44,group:"K", home:"Portugal",             away:"Uzbekistán",          date:"2026-06-23", time:"12:00 PM"},
+    {id:45,group:"L", home:"Inglaterra",           away:"Ghana",               date:"2026-06-23", time:"3:00 PM"},
+    {id:46,group:"L", home:"Panamá",               away:"Croacia",             date:"2026-06-23", time:"6:00 PM"},
+    {id:47,group:"K", home:"Colombia",             away:"RD Congo",            date:"2026-06-23", time:"9:00 PM"},
     // ── JORNADA 3 ──
-    {id:48,group:"B", home:"Bosnia y Herzegovina",away:"Qatar",          date:"2026-06-24"},
-    {id:49,group:"B", home:"Suiza",           away:"Canadá",             date:"2026-06-24"},
-    {id:50,group:"C", home:"Marruecos",       away:"Haití",              date:"2026-06-25"},
-    {id:51,group:"C", home:"Escocia",         away:"Brasil",             date:"2026-06-25"},
-    {id:52,group:"A", home:"República Checa", away:"México",             date:"2026-06-25"},
-    {id:53,group:"A", home:"Sudáfrica",       away:"Corea del Sur",      date:"2026-06-25"},
-    {id:54,group:"E", home:"Curazao",         away:"Costa de Marfil",    date:"2026-06-25"},
-    {id:55,group:"E", home:"Ecuador",         away:"Alemania",           date:"2026-06-25"},
-    {id:56,group:"F", home:"Japón",           away:"Suecia",             date:"2026-06-26"},
-    {id:57,group:"F", home:"Túnez",           away:"Países Bajos",       date:"2026-06-26"},
-    {id:58,group:"D", home:"Paraguay",        away:"Australia",          date:"2026-06-26"},
-    {id:59,group:"D", home:"Turquía",         away:"Estados Unidos",     date:"2026-06-26"},
-    {id:60,group:"I", home:"Noruega",         away:"Francia",            date:"2026-06-26"},
-    {id:61,group:"I", home:"Senegal",         away:"Irak",               date:"2026-06-26"},
-    {id:62,group:"H", home:"Cabo Verde",      away:"Arabia Saudita",     date:"2026-06-27"},
-    {id:63,group:"H", home:"Uruguay",         away:"España",             date:"2026-06-27"},
-    {id:64,group:"G", home:"Egipto",          away:"Irán",               date:"2026-06-27"},
-    {id:65,group:"G", home:"Nueva Zelanda",   away:"Bélgica",            date:"2026-06-27"},
-    {id:66,group:"L", home:"Croacia",         away:"Ghana",              date:"2026-06-27"},
-    {id:67,group:"L", home:"Panamá",          away:"Inglaterra",         date:"2026-06-27"},
-    {id:68,group:"K", home:"Colombia",        away:"Portugal",           date:"2026-06-28"},
-    {id:69,group:"K", home:"Uzbekistán",      away:"RD Congo",           date:"2026-06-28"},
-    {id:70,group:"J", home:"Argelia",         away:"Austria",            date:"2026-06-28"},
-    {id:71,group:"J", home:"Jordania",        away:"Argentina",          date:"2026-06-28"},
+    {id:48,group:"B", home:"Suiza",                away:"Canadá",              date:"2026-06-24", time:"2:00 PM"},
+    {id:49,group:"B", home:"Bosnia y Herzegovina", away:"Qatar",               date:"2026-06-24", time:"2:00 PM"},
+    {id:50,group:"C", home:"Marruecos",            away:"Haití",               date:"2026-06-24", time:"5:00 PM"},
+    {id:51,group:"C", home:"Escocia",              away:"Brasil",              date:"2026-06-24", time:"5:00 PM"},
+    {id:52,group:"A", home:"Sudáfrica",            away:"Corea del Sur",       date:"2026-06-24", time:"8:00 PM"},
+    {id:53,group:"A", home:"República Checa",      away:"México",              date:"2026-06-24", time:"8:00 PM"},
+    {id:54,group:"E", home:"Ecuador",              away:"Alemania",            date:"2026-06-25", time:"3:00 PM"},
+    {id:55,group:"E", home:"Curazao",              away:"Costa de Marfil",     date:"2026-06-25", time:"3:00 PM"},
+    {id:56,group:"F", home:"Túnez",                away:"Países Bajos",        date:"2026-06-25", time:"6:00 PM"},
+    {id:57,group:"F", home:"Japón",                away:"Suecia",              date:"2026-06-25", time:"6:00 PM"},
+    {id:58,group:"D", home:"Turquía",              away:"Estados Unidos",      date:"2026-06-25", time:"9:00 PM"},
+    {id:59,group:"D", home:"Paraguay",             away:"Australia",           date:"2026-06-25", time:"9:00 PM"},
+    {id:60,group:"I", home:"Noruega",              away:"Francia",             date:"2026-06-26", time:"2:00 PM"},
+    {id:61,group:"I", home:"Senegal",              away:"Irak",                date:"2026-06-26", time:"2:00 PM"},
+    {id:62,group:"H", home:"Uruguay",              away:"España",              date:"2026-06-26", time:"7:00 PM"},
+    {id:63,group:"H", home:"Cabo Verde",           away:"Arabia Saudita",      date:"2026-06-26", time:"7:00 PM"},
+    {id:64,group:"G", home:"Nueva Zelanda",        away:"Bélgica",             date:"2026-06-26", time:"10:00 PM"},
+    {id:65,group:"G", home:"Egipto",               away:"Irán",                date:"2026-06-26", time:"10:00 PM"},
+    {id:66,group:"L", home:"Panamá",               away:"Inglaterra",          date:"2026-06-27", time:"4:00 PM"},
+    {id:67,group:"L", home:"Croacia",              away:"Ghana",               date:"2026-06-27", time:"4:00 PM"},
+    {id:68,group:"K", home:"Colombia",             away:"Portugal",            date:"2026-06-27", time:"6:30 PM"},
+    {id:69,group:"K", home:"RD Congo",             away:"Uzbekistán",          date:"2026-06-27", time:"6:30 PM"},
+    {id:70,group:"J", home:"Jordania",             away:"Argentina",           date:"2026-06-27", time:"9:00 PM"},
+    {id:71,group:"J", home:"Argelia",              away:"Austria",             date:"2026-06-27", time:"9:00 PM"},
 ];
 
 
@@ -979,6 +979,7 @@ function renderMyMatches() {
                 h += `<div class="match-card" style="opacity:0.7;border-left-color:#f44336">
                     <div class="match-meta">
                         <span class="group-badge">GRUPO ${m.group}</span>
+                        <span style="color:#555;font-size:0.82em">${m.time||''}</span>
                         <span style="color:#f44336;font-size:0.8em">🔒</span>
                     </div>
                     <div class="match-row">
@@ -995,6 +996,7 @@ function renderMyMatches() {
                 h += `<div class="match-card">
                     <div class="match-meta">
                         <span class="group-badge">GRUPO ${m.group}</span>
+                        <span style="color:#aaa;font-size:0.82em">🕐 ${m.time||''}</span>
                     </div>
                     <div class="match-row">
                         <div class="team-left"><span>${m.home}</span>${flag(m.home)}</div>
@@ -1098,20 +1100,84 @@ function renderMy3rd() {
 
 function renderRealResults() {
     const real = getReal();
-    let h = '<div class="groups-grid">';
+
+    // ── TOGGLE BUTTONS ──
+    let html = `
+        <div style="display:flex;gap:10px;margin-bottom:20px">
+            <button onclick="showRealView('resultados')" id="btnResultados"
+                style="padding:10px 24px;background:#f5c518;color:#0d1117;border:none;border-radius:6px;font-weight:bold;cursor:pointer;font-family:'Bebas Neue',cursive;letter-spacing:2px;font-size:1em">
+                📋 RESULTADOS
+            </button>
+            <button onclick="showRealView('posiciones')" id="btnPosiciones"
+                style="padding:10px 24px;background:#1a2540;color:#aaa;border:1px solid #2a3a5a;border-radius:6px;font-weight:bold;cursor:pointer;font-family:'Bebas Neue',cursive;letter-spacing:2px;font-size:1em">
+                📊 POSICIONES
+            </button>
+        </div>`;
+
+    // ── RESULTADOS ──
+    html += '<div id="viewResultados" class="groups-grid">';
     for (const g in GROUPS) {
-        h += `<div class="group-card"><div class="group-card-header"><strong>GRUPO ${g}</strong></div>
+        html += `<div class="group-card"><div class="group-card-header"><strong>GRUPO ${g}</strong></div>
         <table class="standings"><thead><tr><th>Partido</th><th>Resultado</th></tr></thead><tbody>`;
         for (const m of ALL_MATCHES.filter(x=>x.group===g)) {
             const r=real.find(x=>x.id===m.id);
             const gh=(r?.gh!==null&&r?.gh!==undefined)?r.gh:'-';
             const ga=(r?.ga!==null&&r?.ga!==undefined)?r.ga:'-';
-            h+=`<tr><td>${flag(m.home)} ${m.home} vs ${flag(m.away)} ${m.away}</td><td><strong>${gh}-${ga}</strong></td></tr>`;
+            const hasResult = gh !== '-' && ga !== '-';
+            html+=`<tr>
+                <td>${flag(m.home)} ${m.home} vs ${flag(m.away)} ${m.away}</td>
+                <td><strong style="color:${hasResult?'#f5c518':'#555'}">${gh}-${ga}</strong></td>
+            </tr>`;
         }
-        h += '</tbody></table></div>';
+        html += '</tbody></table></div>';
     }
-    h += '</div>';
-    document.getElementById('realResultsContainer').innerHTML = h;
+    html += '</div>';
+
+    // ── POSICIONES REALES ──
+    html += '<div id="viewPosiciones" class="groups-grid" style="display:none">';
+    for (const g in GROUPS) {
+        const realMatches = real.map(r => ({id:r.id, gh:r.gh, ga:r.ga}));
+        const sorted = calcStandings(g, realMatches);
+        const gm = ALL_MATCHES.filter(m=>m.group===g);
+        const played = gm.filter(m=>{
+            const r=real.find(x=>x.id===m.id);
+            return r?.gh!==null&&r?.gh!==undefined&&r?.ga!==null&&r?.ga!==undefined;
+        }).length;
+
+        html += `<div class="group-card">
+            <div class="group-card-header">
+                <strong>GRUPO ${g}</strong>
+                <span>${played}/${gm.length} jugados</span>
+            </div>
+            <table class="standings">
+            <thead><tr><th>SELECCIÓN</th><th>PJ</th><th>PTS</th><th>GF</th><th>GC</th><th>DG</th></tr></thead><tbody>`;
+
+        sorted.forEach(([team,s],i) => {
+            const diff=s.gf-s.ga, dc=diff>0?'diff-pos':diff<0?'diff-neg':'diff-zero';
+            const rc=i===0?'q1':i===1?'q2':i===2?'q3':'';
+            html+=`<tr class="${rc}">
+                <td><div class="team-cell">${flag(team)}<span>${team}</span></div></td>
+                <td>${s.p}</td><td class="pts-bold">${s.pts}</td>
+                <td>${s.gf}</td><td>${s.ga}</td>
+                <td class="${dc}">${diff>0?'+':''}${diff}</td>
+            </tr>`;
+        });
+        html += '</tbody></table></div>';
+    }
+    html += '</div>';
+
+    document.getElementById('realResultsContainer').innerHTML = html;
+}
+
+function showRealView(view) {
+    document.getElementById('viewResultados').style.display = view==='resultados' ? 'grid' : 'none';
+    document.getElementById('viewPosiciones').style.display = view==='posiciones' ? 'grid' : 'none';
+    document.getElementById('btnResultados').style.background = view==='resultados' ? '#f5c518' : '#1a2540';
+    document.getElementById('btnResultados').style.color = view==='resultados' ? '#0d1117' : '#aaa';
+    document.getElementById('btnResultados').style.border = view==='resultados' ? 'none' : '1px solid #2a3a5a';
+    document.getElementById('btnPosiciones').style.background = view==='posiciones' ? '#f5c518' : '#1a2540';
+    document.getElementById('btnPosiciones').style.color = view==='posiciones' ? '#0d1117' : '#aaa';
+    document.getElementById('btnPosiciones').style.border = view==='posiciones' ? 'none' : '1px solid #2a3a5a';
 }
 
 function renderRanking() {
