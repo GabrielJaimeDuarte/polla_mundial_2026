@@ -593,6 +593,10 @@ const GROUPS = {
 
 // Fixture real FIFA 2026 - fase de grupos (72 partidos)
 const ALL_MATCHES = [
+    // ── PARTIDOS DE PRUEBA (borrar después) ──
+    {id:98,group:"A",home:"🧪 Prueba HOY",away:"(debe estar ABIERTO)",date:"2026-05-26"},
+    {id:99,group:"A",home:"🔒 Prueba MAÑANA",away:"(debe estar BLOQUEADO)",date:"2026-05-27"},
+    // ─────────────────────────────────────────
     // Jue 11 Jun
     {id:0,group:"A",home:"México",away:"Sudáfrica",date:"2026-06-11"},
     {id:1,group:"A",home:"Corea del Sur",away:"República Checa",date:"2026-06-11"},
@@ -922,11 +926,18 @@ function renderMyMatches() {
 
 function saveMyMatches() {
     const users = getUsers();
+    const existing = users[currentUser]?.matches || [];
     const matches = [];
+
     for (const m of ALL_MATCHES) {
+        // Si el partido está bloqueado, conservar el pronóstico anterior sin cambios
+        if (isLocked(m.date)) {
+            const prev = existing.find(x=>x.id===m.id);
+            if (prev) matches.push(prev);
+            continue;
+        }
         const ghVal = document.getElementById(`gh_${m.id}`)?.value;
         const gaVal = document.getElementById(`ga_${m.id}`)?.value;
-        // Solo guardar si ambos campos tienen valor
         if (ghVal !== '' && gaVal !== '' && ghVal !== undefined && gaVal !== undefined) {
             const gh = parseInt(ghVal);
             const ga = parseInt(gaVal);
