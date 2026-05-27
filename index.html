@@ -791,13 +791,13 @@ function showToast(msg) {
     if (!t) {
         t = document.createElement('div');
         t.id = 'toast';
-        t.style.cssText = 'position:fixed;top:24px;right:24px;background:#1a3a1a;border:1px solid #4caf50;color:#4caf50;padding:14px 24px;border-radius:8px;font-weight:bold;z-index:9999;font-size:1em;transition:opacity 0.5s';
+        t.style.cssText = 'position:fixed;top:30px;left:50%;transform:translateX(-50%);background:#1a3a1a;border:2px solid #4caf50;color:#4caf50;padding:16px 32px;border-radius:10px;font-weight:bold;z-index:99999;font-size:1.1em;box-shadow:0 8px 30px rgba(0,0,0,0.5);transition:opacity 0.5s;pointer-events:none';
         document.body.appendChild(t);
     }
     t.textContent = msg;
     t.style.opacity = '1';
     clearTimeout(window._toastTimer);
-    window._toastTimer = setTimeout(() => { t.style.opacity = '0'; }, 3000);
+    window._toastTimer = setTimeout(() => { t.style.opacity = '0'; }, 3500);
 }
 
 function logout() {
@@ -984,9 +984,7 @@ function renderMyMatches() {
         document.body.appendChild(fixedBar);
     }
     fixedBar.innerHTML = `
-        <button class="btn-save" onclick="saveMyMatches()">💾 Guardar pronósticos</button>
-        <button class="btn-sec" onclick="sendEmail()">📧 Enviar por email</button>
-        <span style="margin-left:auto;color:#555;font-size:0.85em;align-self:center">Los partidos se bloquean a las 00:00 del día del partido</span>
+        <button class="btn-save" style="width:100%;max-width:300px;margin:0 auto" onclick="saveMyMatches()">💾 Guardar pronósticos</button>
     `;
     fixedBar.style.display = 'flex';
 
@@ -1022,36 +1020,39 @@ function renderMyMatches() {
 }
 
 function saveMyMatches() {
-    const users = getUsers();
-    const existing = users[currentUser]?.matches || [];
-    const matches = [];
+    try {
+        const users = getUsers();
+        if (!users[currentUser]) users[currentUser] = {pass:'', matches:[]};
+        const existing = users[currentUser].matches || [];
+        const matches = [];
 
-    for (const m of ALL_MATCHES) {
-        // Si bloqueado: conservar pronóstico anterior
-        if (isLocked(m.date)) {
-            const prev = existing.find(x=>x.id===m.id);
-            if (prev) matches.push(prev);
-            continue;
+        for (const m of ALL_MATCHES) {
+            if (isLocked(m.date)) {
+                const prev = existing.find(x=>x.id===m.id);
+                if (prev) matches.push(prev);
+                continue;
+            }
+            const ghEl = document.getElementById('gh_' + m.id);
+            const gaEl = document.getElementById('ga_' + m.id);
+            if (!ghEl || !gaEl) continue;
+            const ghVal = ghEl.value.trim();
+            const gaVal = gaEl.value.trim();
+            if (ghVal === '' || gaVal === '') continue;
+            const gh = parseInt(ghVal);
+            const ga = parseInt(gaVal);
+            if (!isNaN(gh) && !isNaN(ga) && gh >= 0 && ga >= 0) {
+                matches.push({id:m.id, gh, ga});
+            }
         }
-        // Partido abierto: leer del input
-        const ghEl = document.getElementById('gh_' + m.id);
-        const gaEl = document.getElementById('ga_' + m.id);
-        if (!ghEl || !gaEl) continue;
-        const ghVal = ghEl.value;
-        const gaVal = gaEl.value;
-        if (ghVal === '' || gaVal === '') continue;
-        const gh = parseInt(ghVal);
-        const ga = parseInt(gaVal);
-        if (!isNaN(gh) && !isNaN(ga) && gh >= 0 && ga >= 0) {
-            matches.push({id:m.id, gh, ga});
-        }
+
+        users[currentUser].matches = matches;
+        setUsers(users);
+        showToast('✅ ' + matches.length + ' pronósticos guardados');
+        renderMyStandings();
+        renderRanking();
+    } catch(e) {
+        alert('Error al guardar: ' + e.message);
     }
-    users[currentUser].matches = matches;
-    setUsers(users);
-    // Mostrar toast en lugar de alert
-    showToast('✅ Pronósticos guardados correctamente');
-    renderMyStandings();
-    renderRanking();
 }
 
 // ── RENDER MY 3RDS ──
