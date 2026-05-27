@@ -834,6 +834,10 @@ function init() {
         tabs += `<button class="tab-btn" onclick="switchTab('adminSection',this)">Admin 🔧</button>`;
     }
     document.getElementById('tabsContainer').innerHTML = tabs;
+    // Hide save bar initially (only shows in misPartidos)
+    const bar = document.getElementById('fixedSaveBar');
+    if (bar) bar.style.display = 'none';
+
     // Show/hide admin sections
     const adminDivs = ['adminPanel','adminUsuarios','adminSection'];
     adminDivs.forEach(id => {
@@ -929,6 +933,19 @@ function renderMyStandings() {
 }
 
 // ── RENDER MY MATCHES ──
+function isLocked(matchDate) {
+    if (currentUser === ADMIN_USER) return false;
+    const now = new Date();
+    const matchDay = new Date(matchDate + 'T00:00:00');
+    return now >= matchDay;
+}
+
+function horasRestantes(matchDate) {
+    const now = new Date();
+    const matchDay = new Date(matchDate + 'T00:00:00');
+    return matchDay - now;
+}
+
 function renderMyMatches() {
     const users = getUsers();
     const um = users[currentUser]?.matches || [];
@@ -976,17 +993,18 @@ function renderMyMatches() {
     document.getElementById('myMatchesContainer').innerHTML = h;
     document.getElementById('btnRow').innerHTML = '';
     // Fixed save bar at bottom
+    // Fixed save bar - only visible when in misPartidos tab
     let fixedBar = document.getElementById('fixedSaveBar');
     if (!fixedBar) {
         fixedBar = document.createElement('div');
         fixedBar.id = 'fixedSaveBar';
         fixedBar.className = 'btn-row-fixed';
+        fixedBar.innerHTML = `<button class="btn-save" style="width:100%;max-width:300px;margin:0 auto" onclick="saveMyMatches()">💾 Guardar pronósticos</button>`;
         document.body.appendChild(fixedBar);
     }
-    fixedBar.innerHTML = `
-        <button class="btn-save" style="width:100%;max-width:300px;margin:0 auto" onclick="saveMyMatches()">💾 Guardar pronósticos</button>
-    `;
-    fixedBar.style.display = 'flex';
+    // Only show if currently on misPartidos tab
+    const activeTab = document.querySelector('.tab-content.active');
+    fixedBar.style.display = (activeTab && activeTab.id === 'misPartidos') ? 'flex' : 'none';
 
     // Start live countdowns
     if (window._countdownInterval) clearInterval(window._countdownInterval);
