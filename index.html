@@ -980,8 +980,18 @@ function renderMyMatches() {
         const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
         const label = `${dias[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}`;
 
+        const locked = isLocked(date);
+        const diff = horasRestantes(date);
+        const dateId = date.replace(/-/g,'');
+
         h += `<div class="date-section">
-            <div class="date-header">📅 ${label}</div>
+            <div class="date-header">
+                📅 ${label}
+                ${locked
+                    ? '<span class="locked-badge">🔒 CERRADO</span>'
+                    : `<span class="countdown" id="cd_${dateId}">⏱ calculando...</span>`
+                }
+            </div>
             <div class="matches-grid">`;
 
         for (const m of byDate[date]) {
