@@ -466,6 +466,32 @@
         <div id="allForecastsContainer"></div>
     </div>
 
+    <div id="adminUsuarios" class="tab-content">
+        <div class="section-title">👥 Gestión de Usuarios</div>
+
+        <div class="admin-card" style="margin-bottom:20px">
+            <h3>➕ Agregar Participante</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end">
+                <div>
+                    <label style="font-size:0.85em;color:#888;display:block;margin-bottom:6px">USUARIO</label>
+                    <input type="text" id="newUsername" placeholder="Nombre del participante"
+                        style="width:100%;padding:10px 14px;background:#161b2e;border:1px solid #2a3a5a;border-radius:6px;color:#e0e0e0;font-size:0.95em">
+                </div>
+                <div>
+                    <label style="font-size:0.85em;color:#888;display:block;margin-bottom:6px">CONTRASEÑA</label>
+                    <input type="text" id="newPassword" placeholder="Contraseña"
+                        style="width:100%;padding:10px 14px;background:#161b2e;border:1px solid #2a3a5a;border-radius:6px;color:#e0e0e0;font-size:0.95em">
+                </div>
+                <button class="btn-save" style="margin-top:0;height:42px" onclick="addUser()">➕ Agregar</button>
+            </div>
+        </div>
+
+        <div class="admin-card">
+            <h3>📋 Participantes Registrados</h3>
+            <div id="userListContainer"></div>
+        </div>
+    </div>
+
     <div id="adminSection" class="tab-content">
         <div class="section-title">Admin &#128295;</div>
         <div class="admin-card">
@@ -747,6 +773,7 @@ function init() {
     `;
     if (isAdmin) {
         tabs += `<button class="tab-btn" onclick="switchTab('adminPanel',this)">📋 Ver Pronósticos</button>`;
+        tabs += `<button class="tab-btn" onclick="switchTab('adminUsuarios',this)">👥 Usuarios</button>`;
         tabs += `<button class="tab-btn" onclick="switchTab('adminSection',this)">Admin 🔧</button>`;
     }
     document.getElementById('tabsContainer').innerHTML = tabs;
@@ -755,7 +782,7 @@ function init() {
     renderMy3rd();
     renderRealResults();
     renderRanking();
-    if (isAdmin) { renderAllForecasts(); renderAdminRealResults(); }
+    if (isAdmin) { renderAllForecasts(); renderAdminRealResults(); renderUserList(); }
 }
 
 function switchTab(id, btn) {
@@ -1049,6 +1076,93 @@ function sendEmail() {
     }
     emailjs.send(cfg.serviceId,cfg.templateId,{from_name:currentUser,message:txt,reply_to:currentUser+'@polla.com',to_email:cfg.adminMail})
         .then(()=>alert('✅ Email enviado')).catch(e=>alert('❌ Error: '+e));
+}
+
+// ── ADMIN USER MANAGEMENT ──
+function renderUserList() {
+    const users = getUsers();
+    let h = `<table style="width:100%;border-collapse:collapse">
+        <thead><tr>
+            <th style="padding:10px 14px;background:#1a2540;text-align:left;color:#f5c518;font-size:0.85em">USUARIO</th>
+            <th style="padding:10px 14px;background:#1a2540;text-align:left;color:#f5c518;font-size:0.85em">CONTRASEÑA</th>
+            <th style="padding:10px 14px;background:#1a2540;text-align:left;color:#f5c518;font-size:0.85em">PARTIDOS</th>
+            <th style="padding:10px 14px;background:#1a2540;text-align:center;color:#f5c518;font-size:0.85em">ACCIÓN</th>
+        </tr></thead><tbody>`;
+
+    const userList = Object.entries(users).sort((a,b) => a[0].localeCompare(b[0]));
+
+    if (userList.length === 0) {
+        h += `<tr><td colspan="4" style="padding:20px;text-align:center;color:#555">No hay participantes aún</td></tr>`;
+    }
+
+    for (const [username, data] of userList) {
+        const filled = (data.matches || []).length;
+        h += `<tr style="border-bottom:1px solid #1e2a3a">
+            <td style="padding:12px 14px;font-weight:bold">${username}</td>
+            <td style="padding:12px 14px">
+                <span id="pass_${username}" style="color:#aaa">${data.pass}</span>
+            </td>
+            <td style="padding:12px 14px;color:#888">${filled}/72 ingresados</td>
+            <td style="padding:12px 14px;text-align:center">
+                <button onclick="changePassword('${username}')"
+                    style="padding:5px 12px;background:transparent;border:1px solid #2a3a5a;border-radius:4px;color:#aaa;cursor:pointer;margin-right:6px;font-size:0.85em">
+                    ✏️ Cambiar pass
+                </button>
+                <button onclick="deleteUser('${username}')"
+                    style="padding:5px 12px;background:transparent;border:1px solid #f44336;border-radius:4px;color:#f44336;cursor:pointer;font-size:0.85em">
+                    🗑️ Eliminar
+                </button>
+            </td>
+        </tr>`;
+    }
+
+    h += `</tbody></table>
+        <div style="margin-top:14px;color:#888;font-size:0.85em">
+            Total: <strong style="color:#f5c518">${userList.length}</strong> participantes
+        </div>`;
+
+    document.getElementById('userListContainer').innerHTML = h;
+}
+
+function addUser() {
+    const username = document.getElementById('newUsername').value.trim();
+    const password = document.getElementById('newPassword').value.trim();
+
+    if (!username || !password) { alert('Ingresa usuario y contraseña'); return; }
+    if (username === ADMIN_USER) { alert('Ese nombre está reservado'); return; }
+
+    const users = getUsers();
+    if (users[username]) {
+        if (!confirm(`El usuario "${username}" ya existe. ¿Cambiar su contraseña a "${password}"?`)) return;
+    }
+
+    users[username] = users[username] || { matches: [] };
+    users[username].pass = password;
+    setUsers(users);
+
+    document.getElementById('newUsername').value = '';
+    document.getElementById('newPassword').value = '';
+    renderUserList();
+    alert(`✅ Usuario "${username}" ${users[username] ? 'actualizado' : 'creado'} correctamente`);
+}
+
+function changePassword(username) {
+    const newPass = prompt(`Nueva contraseña para "${username}":`);
+    if (!newPass || !newPass.trim()) return;
+    const users = getUsers();
+    users[username].pass = newPass.trim();
+    setUsers(users);
+    renderUserList();
+    alert(`✅ Contraseña de "${username}" actualizada`);
+}
+
+function deleteUser(username) {
+    if (!confirm(`¿Eliminar al usuario "${username}" y todos sus pronósticos?`)) return;
+    const users = getUsers();
+    delete users[username];
+    setUsers(users);
+    renderUserList();
+    renderRanking();
 }
 
 function resetAllUserMatches() {
