@@ -964,12 +964,13 @@ function renderMyMatches() {
     const users = getUsers();
     const um = users[currentUser]?.matches || [];
 
-    // Agrupar partidos por fecha
-    const byDate = {};
+    // Agrupar partidos por fecha (global para el countdown)
+    window._byDate = {};
     for (const m of ALL_MATCHES) {
-        if (!byDate[m.date]) byDate[m.date] = [];
-        byDate[m.date].push(m);
+        if (!window._byDate[m.date]) window._byDate[m.date] = [];
+        window._byDate[m.date].push(m);
     }
+    const byDate = window._byDate;
 
     let h = '';
     for (const date of Object.keys(byDate).sort()) {
@@ -1046,7 +1047,7 @@ function renderMyMatches() {
     // Start live countdowns
     if (window._countdownInterval) clearInterval(window._countdownInterval);
     window._countdownInterval = setInterval(() => {
-        const dates = Object.keys(byDate);
+        const dates = Object.keys(window._byDate || {});
         dates.forEach(date => {
             if (isLocked(date)) return;
             const dateId = date.replace(/-/g,'');
