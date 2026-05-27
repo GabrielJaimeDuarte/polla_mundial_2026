@@ -570,8 +570,6 @@
 </div>
 
 
-</body>
-</html>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/index.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -645,101 +643,100 @@ const GROUPS = {
     L:["Inglaterra","Croacia","Ghana","Panamá"]
 };
 
-// Fixture real FIFA 2026 - fase de grupos (72 partidos)
+// Fixture real FIFA 2026 - 72 partidos fase de grupos
 const ALL_MATCHES = [
-
-    // Jue 11 Jun
-    {id:0,group:"A",home:"México",away:"Sudáfrica",date:"2026-06-11"},
-    {id:1,group:"A",home:"Corea del Sur",away:"República Checa",date:"2026-06-11"},
-    // Vie 12 Jun
-    {id:2,group:"B",home:"Canadá",away:"Bosnia y Herzegovina",date:"2026-06-12"},
-    {id:3,group:"D",home:"Estados Unidos",away:"Paraguay",date:"2026-06-12"},
-    // Sáb 13 Jun
-    {id:4,group:"B",home:"Qatar",away:"Suiza",date:"2026-06-13"},
-    {id:5,group:"C",home:"Brasil",away:"Marruecos",date:"2026-06-13"},
-    {id:6,group:"C",home:"Haití",away:"Escocia",date:"2026-06-13"},
-    {id:7,group:"D",home:"Australia",away:"Turquía",date:"2026-06-13"},
-    // Dom 14 Jun
-    {id:8,group:"E",home:"Alemania",away:"Curazao",date:"2026-06-14"},
-    {id:9,group:"F",home:"Países Bajos",away:"Japón",date:"2026-06-14"},
-    {id:10,group:"E",home:"Costa de Marfil",away:"Ecuador",date:"2026-06-14"},
-    {id:11,group:"F",home:"Suecia",away:"Túnez",date:"2026-06-14"},
-    // Lun 15 Jun
-    {id:12,group:"H",home:"España",away:"Cabo Verde",date:"2026-06-15"},
-    {id:13,group:"G",home:"Bélgica",away:"Egipto",date:"2026-06-15"},
-    {id:14,group:"H",home:"Arabia Saudita",away:"Uruguay",date:"2026-06-15"},
-    {id:15,group:"G",home:"Irán",away:"Nueva Zelanda",date:"2026-06-15"},
-    // Mar 16 Jun
-    {id:16,group:"I",home:"Francia",away:"Senegal",date:"2026-06-16"},
-    {id:17,group:"I",home:"Irak",away:"Noruega",date:"2026-06-16"},
-    {id:18,group:"J",home:"Argentina",away:"Argelia",date:"2026-06-16"},
-    {id:19,group:"J",home:"Austria",away:"Jordania",date:"2026-06-16"},
-    // Mié 17 Jun
-    {id:20,group:"K",home:"Portugal",away:"RD Congo",date:"2026-06-17"},
-    {id:21,group:"L",home:"Inglaterra",away:"Croacia",date:"2026-06-17"},
-    {id:22,group:"L",home:"Ghana",away:"Panamá",date:"2026-06-17"},
-    {id:23,group:"K",home:"Uzbekistán",away:"Colombia",date:"2026-06-17"},
-    // Jue 18 Jun
-    {id:24,group:"A",home:"República Checa",away:"Sudáfrica",date:"2026-06-18"},
-    {id:25,group:"B",home:"Suiza",away:"Bosnia y Herzegovina",date:"2026-06-18"},
-    {id:26,group:"B",home:"Canadá",away:"Qatar",date:"2026-06-18"},
-    {id:27,group:"A",home:"México",away:"Corea del Sur",date:"2026-06-18"},
-    // Vie 19 Jun
-    {id:28,group:"D",home:"Estados Unidos",away:"Australia",date:"2026-06-19"},
-    {id:29,group:"C",home:"Escocia",away:"Marruecos",date:"2026-06-19"},
-    {id:30,group:"C",home:"Brasil",away:"Haití",date:"2026-06-19"},
-    {id:31,group:"D",home:"Turquía",away:"Paraguay",date:"2026-06-19"},
-    // Sáb 20 Jun
-    {id:32,group:"F",home:"Países Bajos",away:"Suecia",date:"2026-06-20"},
-    {id:33,group:"E",home:"Alemania",away:"Costa de Marfil",date:"2026-06-20"},
-    {id:34,group:"E",home:"Ecuador",away:"Curazao",date:"2026-06-20"},
-    {id:35,group:"F",home:"Túnez",away:"Japón",date:"2026-06-20"},
-    // Dom 21 Jun
-    {id:36,group:"H",home:"España",away:"Arabia Saudita",date:"2026-06-21"},
-    {id:37,group:"G",home:"Bélgica",away:"Irán",date:"2026-06-21"},
-    {id:38,group:"H",home:"Uruguay",away:"Cabo Verde",date:"2026-06-21"},
-    {id:39,group:"G",home:"Nueva Zelanda",away:"Egipto",date:"2026-06-21"},
-    // Lun 22 Jun
-    {id:40,group:"J",home:"Argentina",away:"Austria",date:"2026-06-22"},
-    {id:41,group:"I",home:"Francia",away:"Irak",date:"2026-06-22"},
-    {id:42,group:"I",home:"Noruega",away:"Senegal",date:"2026-06-22"},
-    {id:43,group:"J",home:"Jordania",away:"Argelia",date:"2026-06-22"},
-    // Mar 23 Jun
-    {id:44,group:"K",home:"Portugal",away:"Uzbekistán",date:"2026-06-23"},
-    {id:45,group:"L",home:"Inglaterra",away:"Ghana",date:"2026-06-23"},
-    {id:46,group:"L",home:"Panamá",away:"Croacia",date:"2026-06-23"},
-    {id:47,group:"K",home:"Colombia",away:"RD Congo",date:"2026-06-23"},
-    // Mié 24 Jun
-    {id:48,group:"B",home:"Suiza",away:"Canadá",date:"2026-06-24"},
-    {id:49,group:"B",home:"Bosnia y Herzegovina",away:"Qatar",date:"2026-06-24"},
-    {id:50,group:"A",home:"Sudáfrica",away:"México",date:"2026-06-24"},
-    {id:51,group:"A",home:"República Checa",away:"Corea del Sur",date:"2026-06-24"},
-    // Jue 25 Jun
-    {id:52,group:"D",home:"Paraguay",away:"Australia",date:"2026-06-25"},
-    {id:53,group:"D",home:"Turquía",away:"Estados Unidos",date:"2026-06-25"},
-    {id:54,group:"C",home:"Marruecos",away:"Haití",date:"2026-06-25"},
-    {id:55,group:"C",home:"Escocia",away:"Brasil",date:"2026-06-25"},
-    // Vie 26 Jun
-    {id:56,group:"F",home:"Japón",away:"Suecia",date:"2026-06-26"},
-    {id:57,group:"F",home:"Túnez",away:"Países Bajos",date:"2026-06-26"},
-    {id:58,group:"E",home:"Curazao",away:"Costa de Marfil",date:"2026-06-26"},
-    {id:59,group:"E",home:"Ecuador",away:"Alemania",date:"2026-06-26"},
-    // Sáb 27 Jun
-    {id:60,group:"G",home:"Egipto",away:"Irán",date:"2026-06-27"},
-    {id:61,group:"G",home:"Nueva Zelanda",away:"Bélgica",date:"2026-06-27"},
-    {id:62,group:"H",home:"Cabo Verde",away:"Arabia Saudita",date:"2026-06-27"},
-    {id:63,group:"H",home:"Uruguay",away:"España",date:"2026-06-27"},
-    // Dom 28 Jun
-    {id:64,group:"I",home:"Senegal",away:"Irak",date:"2026-06-28"},
-    {id:65,group:"I",home:"Noruega",away:"Francia",date:"2026-06-28"},
-    {id:66,group:"J",home:"Argelia",away:"Austria",date:"2026-06-28"},
-    {id:67,group:"J",home:"Jordania",away:"Argentina",date:"2026-06-28"},
-    // Lun 29 Jun
-    {id:68,group:"K",home:"RD Congo",away:"Portugal",date:"2026-06-29"},
-    {id:69,group:"K",home:"Colombia",away:"Uzbekistán",date:"2026-06-29"},
-    {id:70,group:"L",home:"Croacia",away:"Ghana",date:"2026-06-29"},
-    {id:71,group:"L",home:"Panamá",away:"Inglaterra",date:"2026-06-29"},
+    // ── JORNADA 1 ──
+    {id:0, group:"A", home:"México",          away:"Sudáfrica",          date:"2026-06-11"},
+    {id:1, group:"A", home:"Corea del Sur",   away:"República Checa",    date:"2026-06-12"},
+    {id:2, group:"B", home:"Canadá",          away:"Bosnia y Herzegovina",date:"2026-06-12"},
+    {id:3, group:"D", home:"Estados Unidos",  away:"Paraguay",           date:"2026-06-13"},
+    {id:4, group:"B", home:"Qatar",           away:"Suiza",              date:"2026-06-13"},
+    {id:5, group:"C", home:"Brasil",          away:"Marruecos",          date:"2026-06-14"},
+    {id:6, group:"C", home:"Haití",           away:"Escocia",            date:"2026-06-14"},
+    {id:7, group:"D", home:"Australia",       away:"Turquía",            date:"2026-06-14"},
+    {id:8, group:"E", home:"Alemania",        away:"Curazao",            date:"2026-06-14"},
+    {id:9, group:"F", home:"Países Bajos",    away:"Japón",              date:"2026-06-14"},
+    {id:10,group:"E", home:"Costa de Marfil", away:"Ecuador",            date:"2026-06-15"},
+    {id:11,group:"F", home:"Suecia",          away:"Túnez",              date:"2026-06-15"},
+    {id:12,group:"H", home:"España",          away:"Cabo Verde",         date:"2026-06-15"},
+    {id:13,group:"G", home:"Bélgica",         away:"Egipto",             date:"2026-06-15"},
+    {id:14,group:"H", home:"Arabia Saudita",  away:"Uruguay",            date:"2026-06-16"},
+    {id:15,group:"G", home:"Irán",            away:"Nueva Zelanda",      date:"2026-06-16"},
+    {id:16,group:"I", home:"Francia",         away:"Senegal",            date:"2026-06-16"},
+    {id:17,group:"I", home:"Irak",            away:"Noruega",            date:"2026-06-17"},
+    {id:18,group:"J", home:"Argentina",       away:"Argelia",            date:"2026-06-17"},
+    {id:19,group:"J", home:"Austria",         away:"Jordania",           date:"2026-06-17"},
+    {id:20,group:"K", home:"Portugal",        away:"RD Congo",           date:"2026-06-17"},
+    {id:21,group:"L", home:"Inglaterra",      away:"Croacia",            date:"2026-06-17"},
+    {id:22,group:"L", home:"Ghana",           away:"Panamá",             date:"2026-06-18"},
+    {id:23,group:"K", home:"Uzbekistán",      away:"Colombia",           date:"2026-06-18"},
+    // ── JORNADA 2 ──
+    {id:24,group:"A", home:"República Checa", away:"Sudáfrica",          date:"2026-06-18"},
+    {id:25,group:"B", home:"Suiza",           away:"Bosnia y Herzegovina",date:"2026-06-18"},
+    {id:26,group:"B", home:"Canadá",          away:"Qatar",              date:"2026-06-19"},
+    {id:27,group:"A", home:"México",          away:"Corea del Sur",      date:"2026-06-19"},
+    {id:28,group:"D", home:"Estados Unidos",  away:"Australia",          date:"2026-06-19"},
+    {id:29,group:"C", home:"Escocia",         away:"Marruecos",          date:"2026-06-20"},
+    {id:30,group:"C", home:"Brasil",          away:"Haití",              date:"2026-06-20"},
+    {id:31,group:"D", home:"Turquía",         away:"Paraguay",           date:"2026-06-20"},
+    {id:32,group:"F", home:"Países Bajos",    away:"Suecia",             date:"2026-06-20"},
+    {id:33,group:"E", home:"Alemania",        away:"Costa de Marfil",    date:"2026-06-20"},
+    {id:34,group:"E", home:"Ecuador",         away:"Curazao",            date:"2026-06-21"},
+    {id:35,group:"F", home:"Túnez",           away:"Japón",              date:"2026-06-21"},
+    {id:36,group:"H", home:"España",          away:"Arabia Saudita",     date:"2026-06-21"},
+    {id:37,group:"G", home:"Bélgica",         away:"Irán",               date:"2026-06-21"},
+    {id:38,group:"H", home:"Uruguay",         away:"Cabo Verde",         date:"2026-06-22"},
+    {id:39,group:"G", home:"Nueva Zelanda",   away:"Egipto",             date:"2026-06-22"},
+    {id:40,group:"J", home:"Argentina",       away:"Austria",            date:"2026-06-22"},
+    {id:41,group:"I", home:"Francia",         away:"Irak",               date:"2026-06-22"},
+    {id:42,group:"I", home:"Noruega",         away:"Senegal",            date:"2026-06-23"},
+    {id:43,group:"J", home:"Jordania",        away:"Argelia",            date:"2026-06-23"},
+    {id:44,group:"K", home:"Portugal",        away:"Uzbekistán",         date:"2026-06-23"},
+    {id:45,group:"L", home:"Inglaterra",      away:"Ghana",              date:"2026-06-23"},
+    {id:46,group:"L", home:"Panamá",          away:"Croacia",            date:"2026-06-24"},
+    {id:47,group:"K", home:"Colombia",        away:"RD Congo",           date:"2026-06-24"},
+    // ── JORNADA 3 ──
+    {id:48,group:"B", home:"Bosnia y Herzegovina",away:"Qatar",          date:"2026-06-24"},
+    {id:49,group:"B", home:"Suiza",           away:"Canadá",             date:"2026-06-24"},
+    {id:50,group:"C", home:"Marruecos",       away:"Haití",              date:"2026-06-25"},
+    {id:51,group:"C", home:"Escocia",         away:"Brasil",             date:"2026-06-25"},
+    {id:52,group:"A", home:"República Checa", away:"México",             date:"2026-06-25"},
+    {id:53,group:"A", home:"Sudáfrica",       away:"Corea del Sur",      date:"2026-06-25"},
+    {id:54,group:"E", home:"Curazao",         away:"Costa de Marfil",    date:"2026-06-25"},
+    {id:55,group:"E", home:"Ecuador",         away:"Alemania",           date:"2026-06-25"},
+    {id:56,group:"F", home:"Japón",           away:"Suecia",             date:"2026-06-26"},
+    {id:57,group:"F", home:"Túnez",           away:"Países Bajos",       date:"2026-06-26"},
+    {id:58,group:"D", home:"Paraguay",        away:"Australia",          date:"2026-06-26"},
+    {id:59,group:"D", home:"Turquía",         away:"Estados Unidos",     date:"2026-06-26"},
+    {id:60,group:"I", home:"Noruega",         away:"Francia",            date:"2026-06-26"},
+    {id:61,group:"I", home:"Senegal",         away:"Irak",               date:"2026-06-26"},
+    {id:62,group:"H", home:"Cabo Verde",      away:"Arabia Saudita",     date:"2026-06-27"},
+    {id:63,group:"H", home:"Uruguay",         away:"España",             date:"2026-06-27"},
+    {id:64,group:"G", home:"Egipto",          away:"Irán",               date:"2026-06-27"},
+    {id:65,group:"G", home:"Nueva Zelanda",   away:"Bélgica",            date:"2026-06-27"},
+    {id:66,group:"L", home:"Croacia",         away:"Ghana",              date:"2026-06-27"},
+    {id:67,group:"L", home:"Panamá",          away:"Inglaterra",         date:"2026-06-27"},
+    {id:68,group:"K", home:"Colombia",        away:"Portugal",           date:"2026-06-28"},
+    {id:69,group:"K", home:"Uzbekistán",      away:"RD Congo",           date:"2026-06-28"},
+    {id:70,group:"J", home:"Argelia",         away:"Austria",            date:"2026-06-28"},
+    {id:71,group:"J", home:"Jordania",        away:"Argentina",          date:"2026-06-28"},
 ];
+
+
+
+// ── LOCK LOGIC ──
+function isLocked(matchDate) {
+    if (currentUser === ADMIN_USER) return false;
+    const now = new Date();
+    const matchDay = new Date(matchDate + 'T00:00:00');
+    return now >= matchDay;
+}
+
+function horasRestantes(matchDate) {
+    const now = new Date();
+    const matchDay = new Date(matchDate + 'T00:00:00');
+    return matchDay - now;
+}
 
 // ── STORAGE ──
 function getUsers() { try { return JSON.parse(localStorage.getItem('wc2026_users')||'{}'); } catch { return {}; } }
@@ -750,7 +747,7 @@ function setUsers(u) {
 function getReal() {
     try {
         const s = JSON.parse(localStorage.getItem('wc2026_real')||'[]');
-        return ALL_MATCHES.map((m,i) => { const f=s.find(x=>x.id===i); return f ? {...m,gh:f.gh,ga:f.ga} : {...m,gh:null,ga:null}; });
+        return ALL_MATCHES.map(m => { const f=s.find(x=>x.id===m.id); return f ? {...m,gh:f.gh,ga:f.ga} : {...m,gh:null,ga:null}; });
     } catch { return ALL_MATCHES.map(m=>({...m,gh:null,ga:null})); }
 }
 function setReal(arr) {
@@ -763,7 +760,6 @@ function setEjsConfig(c) {
     if (db) db.ref('ejs').set(c).catch(()=>{});
 }
 
-// ── INIT TEST USER ──
 function ensureTestUser() {
     const u = getUsers();
     if (!u['Gabriel']) { u['Gabriel']={pass:'Gabriel',matches:[]}; setUsers(u); }
@@ -800,20 +796,6 @@ function login() {
     });
 }
 
-function showToast(msg) {
-    let t = document.getElementById('toast');
-    if (!t) {
-        t = document.createElement('div');
-        t.id = 'toast';
-        t.style.cssText = 'position:fixed;top:30px;left:50%;transform:translateX(-50%);background:#1a3a1a;border:2px solid #4caf50;color:#4caf50;padding:16px 32px;border-radius:10px;font-weight:bold;z-index:99999;font-size:1.1em;box-shadow:0 8px 30px rgba(0,0,0,0.5);transition:opacity 0.5s;pointer-events:none';
-        document.body.appendChild(t);
-    }
-    t.textContent = msg;
-    t.style.opacity = '1';
-    clearTimeout(window._toastTimer);
-    window._toastTimer = setTimeout(() => { t.style.opacity = '0'; }, 3500);
-}
-
 function logout() {
     currentUser = null;
     const bar = document.getElementById('fixedSaveBar');
@@ -829,6 +811,20 @@ function showApp() {
     document.getElementById('mainApp').style.display = 'block';
     document.getElementById('currentUser').textContent = currentUser;
     init();
+}
+
+function showToast(msg) {
+    let t = document.getElementById('toast');
+    if (!t) {
+        t = document.createElement('div');
+        t.id = 'toast';
+        t.style.cssText = 'position:fixed;top:30px;left:50%;transform:translateX(-50%);background:#1a3a1a;border:2px solid #4caf50;color:#4caf50;padding:16px 32px;border-radius:10px;font-weight:bold;z-index:99999;font-size:1.1em;box-shadow:0 8px 30px rgba(0,0,0,0.5);transition:opacity 0.5s;pointer-events:none';
+        document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.style.opacity = '1';
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => { t.style.opacity = '0'; }, 3500);
 }
 
 // ── INIT ──
@@ -848,11 +844,10 @@ function init() {
         tabs += `<button class="tab-btn" onclick="switchTab('adminSection',this)">Admin 🔧</button>`;
     }
     document.getElementById('tabsContainer').innerHTML = tabs;
-    // Hide save bar initially (only shows in misPartidos)
+
     const bar = document.getElementById('fixedSaveBar');
     if (bar) bar.style.display = 'none';
 
-    // Show/hide admin tab BUTTONS (the divs are controlled by .active class)
     const adminDivs = ['adminPanel','adminUsuarios','adminSection'];
     adminDivs.forEach(id => {
         const el = document.getElementById(id);
@@ -894,19 +889,18 @@ function calcPoints(rh,ra,fh,fa) {
     return p;
 }
 
-// ── STANDINGS CALC ──
+// ── STANDINGS ──
 function calcStandings(groupName, matchList) {
     const st = {};
     GROUPS[groupName].forEach(t => { st[t]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0}; });
     for (const m of ALL_MATCHES.filter(x=>x.group===groupName)) {
         const um = matchList.find(x=>x.id===m.id);
-        // Solo contar si el partido existe en la lista Y tiene valores numéricos válidos
         if (!um) continue;
-        if (um.gh===undefined || um.gh===null || um.gh==='') continue;
-        if (um.ga===undefined || um.ga===null || um.ga==='') continue;
-        const gh = Number(um.gh), ga = Number(um.ga);
-        if (isNaN(gh) || isNaN(ga)) continue;
-        if (!st[m.home] || !st[m.away]) continue;
+        if (um.gh===undefined||um.gh===null||um.gh==='') continue;
+        if (um.ga===undefined||um.ga===null||um.ga==='') continue;
+        const gh=Number(um.gh), ga=Number(um.ga);
+        if (isNaN(gh)||isNaN(ga)) continue;
+        if (!st[m.home]||!st[m.away]) continue;
         st[m.home].p++; st[m.away].p++;
         st[m.home].gf+=gh; st[m.home].ga+=ga;
         st[m.away].gf+=ga; st[m.away].ga+=gh;
@@ -917,15 +911,12 @@ function calcStandings(groupName, matchList) {
     return Object.entries(st).sort((a,b)=>b[1].pts-a[1].pts||(b[1].gf-b[1].ga)-(a[1].gf-a[1].ga));
 }
 
-function standingsTable(groupName, matchList, showCount=false) {
+function standingsTable(groupName, matchList) {
     const sorted = calcStandings(groupName, matchList);
     const gm = ALL_MATCHES.filter(m=>m.group===groupName);
     const filled = gm.filter(m=>matchList.find(um=>um.id===m.id)).length;
     let h = `<div class="group-card">
-        <div class="group-card-header">
-            <strong>GRUPO ${groupName}</strong>
-            ${showCount ? `<span>${filled}/${gm.length}</span>` : ''}
-        </div>
+        <div class="group-card-header"><strong>GRUPO ${groupName}</strong><span>${filled}/${gm.length}</span></div>
         <table class="standings">
         <thead><tr><th>SELECCIÓN</th><th>PJ</th><th>PTS</th><th>GF</th><th>GC</th><th>DG</th></tr></thead><tbody>`;
     sorted.forEach(([team,s],i) => {
@@ -935,39 +926,22 @@ function standingsTable(groupName, matchList, showCount=false) {
             <td>${s.p}</td><td class="pts-bold">${s.pts}</td><td>${s.gf}</td><td>${s.ga}</td>
             <td class="${dc}">${diff>0?'+':''}${diff}</td></tr>`;
     });
-    h += '</tbody></table></div>';
-    return h;
+    return h + '</tbody></table></div>';
 }
 
-// ── RENDER MY STANDINGS ──
 function renderMyStandings() {
     const users = getUsers();
     const um = users[currentUser]?.matches || [];
     let h = '<div class="groups-grid">';
-    for (const g in GROUPS) h += standingsTable(g, um, true);
+    for (const g in GROUPS) h += standingsTable(g, um);
     h += '</div>';
     document.getElementById('myStandingsContainer').innerHTML = h;
-}
-
-// ── RENDER MY MATCHES ──
-function isLocked(matchDate) {
-    if (currentUser === ADMIN_USER) return false;
-    const now = new Date();
-    const matchDay = new Date(matchDate + 'T00:00:00');
-    return now >= matchDay;
-}
-
-function horasRestantes(matchDate) {
-    const now = new Date();
-    const matchDay = new Date(matchDate + 'T00:00:00');
-    return matchDay - now;
 }
 
 function renderMyMatches() {
     const users = getUsers();
     const um = users[currentUser]?.matches || [];
 
-    // Agrupar partidos por fecha (global para el countdown)
     window._byDate = {};
     for (const m of ALL_MATCHES) {
         if (!window._byDate[m.date]) window._byDate[m.date] = [];
@@ -977,14 +951,11 @@ function renderMyMatches() {
 
     let h = '';
     for (const date of Object.keys(byDate).sort()) {
-        // Formato bonito: 2026-06-11 → Jue 11 Jun 2026
         const d = new Date(date + 'T12:00:00');
         const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
         const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
         const label = `${dias[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}`;
-
         const locked = isLocked(date);
-        const diff = horasRestantes(date);
         const dateId = date.replace(/-/g,'');
 
         h += `<div class="date-section">
@@ -1003,13 +974,12 @@ function renderMyMatches() {
             const ga = u?.ga ?? '';
 
             if (locked) {
-                // Partido bloqueado: mostrar resultado guardado (o ?? si no llenó)
                 const dispGh = (gh !== '') ? gh : '?';
                 const dispGa = (ga !== '') ? ga : '?';
                 h += `<div class="match-card" style="opacity:0.7;border-left-color:#f44336">
                     <div class="match-meta">
                         <span class="group-badge">GRUPO ${m.group}</span>
-                        <span style="color:#f44336;font-size:0.8em">🔒 CERRADO</span>
+                        <span style="color:#f44336;font-size:0.8em">🔒</span>
                     </div>
                     <div class="match-row">
                         <div class="team-left"><span>${m.home}</span>${flag(m.home)}</div>
@@ -1042,9 +1012,7 @@ function renderMyMatches() {
     }
 
     document.getElementById('myMatchesContainer').innerHTML = h;
-    document.getElementById('btnRow').innerHTML = '';
-    // Fixed save bar at bottom
-    // Fixed save bar - only visible when in misPartidos tab
+
     let fixedBar = document.getElementById('fixedSaveBar');
     if (!fixedBar) {
         fixedBar = document.createElement('div');
@@ -1053,11 +1021,9 @@ function renderMyMatches() {
         fixedBar.innerHTML = `<button class="btn-save" style="width:100%;max-width:300px;margin:0 auto" onclick="saveMyMatches()">💾 Guardar pronósticos</button>`;
         document.body.appendChild(fixedBar);
     }
-    // Only show if currently on misPartidos tab
     const activeTab = document.querySelector('.tab-content.active');
     fixedBar.style.display = (activeTab && activeTab.id === 'misPartidos') ? 'flex' : 'none';
 
-    // Start live countdowns
     if (window._countdownInterval) clearInterval(window._countdownInterval);
     window._countdownInterval = setInterval(() => {
         const dates = Object.keys(window._byDate || {});
@@ -1069,20 +1035,16 @@ function renderMyMatches() {
             const now = new Date();
             const matchDay = new Date(date + 'T00:00:00');
             const diff = matchDay - now;
-            if (diff <= 0) {
-                // Just locked! Reload matches to show lock state
-                renderMyMatches();
-                return;
-            }
-            const dias = Math.floor(diff / 86400000);
-            const hh = Math.floor((diff % 86400000) / 3600000);
-            const mm = Math.floor((diff % 3600000) / 60000);
-            const ss = Math.floor((diff % 60000) / 1000);
+            if (diff <= 0) { renderMyMatches(); return; }
+            const dd = Math.floor(diff/86400000);
+            const hh = Math.floor((diff%86400000)/3600000);
+            const mm = Math.floor((diff%3600000)/60000);
+            const ss = Math.floor((diff%60000)/1000);
             const parts = [];
-            if (dias > 0) parts.push(dias + 'd');
-            parts.push(String(hh).padStart(2,'0') + 'h');
-            parts.push(String(mm).padStart(2,'0') + 'm');
-            parts.push(String(ss).padStart(2,'0') + 's');
+            if (dd>0) parts.push(dd+'d');
+            parts.push(String(hh).padStart(2,'0')+'h');
+            parts.push(String(mm).padStart(2,'0')+'m');
+            parts.push(String(ss).padStart(2,'0')+'s');
             el.textContent = '⏱ ' + parts.join(' ');
         });
     }, 1000);
@@ -1091,7 +1053,7 @@ function renderMyMatches() {
 function saveMyMatches() {
     try {
         const users = getUsers();
-        if (!users[currentUser]) users[currentUser] = {pass:'', matches:[]};
+        if (!users[currentUser]) users[currentUser] = {pass:'',matches:[]};
         const existing = users[currentUser].matches || [];
         const matches = [];
 
@@ -1106,12 +1068,9 @@ function saveMyMatches() {
             if (!ghEl || !gaEl) continue;
             const ghVal = ghEl.value.trim();
             const gaVal = gaEl.value.trim();
-            if (ghVal === '' || gaVal === '') continue;
-            const gh = parseInt(ghVal);
-            const ga = parseInt(gaVal);
-            if (!isNaN(gh) && !isNaN(ga) && gh >= 0 && ga >= 0) {
-                matches.push({id:m.id, gh, ga});
-            }
+            if (ghVal===''||gaVal==='') continue;
+            const gh = parseInt(ghVal), ga = parseInt(gaVal);
+            if (!isNaN(gh)&&!isNaN(ga)&&gh>=0&&ga>=0) matches.push({id:m.id,gh,ga});
         }
 
         users[currentUser].matches = matches;
@@ -1124,7 +1083,6 @@ function saveMyMatches() {
     }
 }
 
-// ── RENDER MY 3RDS ──
 function renderMy3rd() {
     const users = getUsers();
     const um = users[currentUser]?.matches || [];
@@ -1138,7 +1096,6 @@ function renderMy3rd() {
     document.getElementById('my3rdContainer').innerHTML = h;
 }
 
-// ── RENDER REAL RESULTS ──
 function renderRealResults() {
     const real = getReal();
     let h = '<div class="groups-grid">';
@@ -1146,7 +1103,7 @@ function renderRealResults() {
         h += `<div class="group-card"><div class="group-card-header"><strong>GRUPO ${g}</strong></div>
         <table class="standings"><thead><tr><th>Partido</th><th>Resultado</th></tr></thead><tbody>`;
         for (const m of ALL_MATCHES.filter(x=>x.group===g)) {
-            const r = real.find(x=>x.id===m.id);
+            const r=real.find(x=>x.id===m.id);
             const gh=(r?.gh!==null&&r?.gh!==undefined)?r.gh:'-';
             const ga=(r?.ga!==null&&r?.ga!==undefined)?r.ga:'-';
             h+=`<tr><td>${flag(m.home)} ${m.home} vs ${flag(m.away)} ${m.away}</td><td><strong>${gh}-${ga}</strong></td></tr>`;
@@ -1157,18 +1114,18 @@ function renderRealResults() {
     document.getElementById('realResultsContainer').innerHTML = h;
 }
 
-// ── RENDER RANKING ──
 function renderRanking() {
     const users = getUsers();
     const real = getReal();
     const ranking = [];
     for (const u in users) {
-        const um = users[u].matches || [];
-        let pts = 0;
+        const um=users[u].matches||[];
+        let pts=0;
         for (const m of ALL_MATCHES) {
-            const um2 = um.find(x=>x.id===m.id);
-            const rm = real.find(x=>x.id===m.id);
-            if (um2&&rm?.gh!==null&&rm?.ga!==null) pts+=calcPoints(rm.gh,rm.ga,um2.gh,um2.ga);
+            const um2=um.find(x=>x.id===m.id);
+            const rm=real.find(x=>x.id===m.id);
+            if(um2&&rm?.gh!==null&&rm?.ga!==null&&rm?.gh!==undefined&&rm?.ga!==undefined)
+                pts+=calcPoints(rm.gh,rm.ga,um2.gh,um2.ga);
         }
         ranking.push({username:u,points:pts});
     }
@@ -1182,7 +1139,6 @@ function renderRanking() {
     document.getElementById('rankingContainer').innerHTML = h;
 }
 
-// ── ADMIN: REAL RESULTS ──
 function renderAdminRealResults() {
     const real = getReal();
     let h = '';
@@ -1194,9 +1150,9 @@ function renderAdminRealResults() {
             const ga=(r?.ga!==null&&r?.ga!==undefined)?r.ga:'';
             h+=`<div class="admin-match-row">
                 <span>${flag(m.home)} ${m.home}</span>
-                <input type="number" class="admin-inp" id="real_gh_${m.id}" value="${gh}" placeholder="0" min="0">
+                <input type="number" class="admin-inp" id="real_gh_${m.id}" value="${gh}" placeholder="?" min="0">
                 <span style="text-align:center;color:#555">-</span>
-                <input type="number" class="admin-inp" id="real_ga_${m.id}" value="${ga}" placeholder="0" min="0">
+                <input type="number" class="admin-inp" id="real_ga_${m.id}" value="${ga}" placeholder="?" min="0">
                 <span>${flag(m.away)} ${m.away}</span>
             </div>`;
         }
@@ -1212,65 +1168,11 @@ function saveRealResults() {
         return {id:m.id, gh:gh>=0?gh:null, ga:ga>=0?ga:null};
     });
     setReal(results);
-    alert('✅ Resultados guardados');
+    showToast('✅ Resultados guardados');
     renderRealResults();
     renderRanking();
 }
 
-// ── ADMIN: ALL FORECASTS ──
-function renderAllForecasts() {
-    const users = getUsers();
-    const real = getReal();
-    let h = '';
-    for (const u in users) {
-        if (u===ADMIN_USER) continue;
-        const um=users[u].matches||[];
-        let pts=0;
-        for (const m of ALL_MATCHES) {
-            const um2=um.find(x=>x.id===m.id);
-            const rm=real.find(x=>x.id===m.id);
-            if(um2&&rm?.gh!==null&&rm?.ga!==null) pts+=calcPoints(rm.gh,rm.ga,um2.gh,um2.ga);
-        }
-        h+=`<div class="match-card" style="margin-bottom:16px">
-            <strong style="color:#f5c518;font-size:1.1em">${u}</strong>
-            <span style="float:right;color:#f5c518">${pts} pts</span>
-            <hr style="border-color:#1e2a3a;margin:10px 0">`;
-        for (const g in GROUPS) {
-            h+=`<strong style="font-size:0.85em;color:#888;letter-spacing:1px">GRUPO ${g}</strong><br>`;
-            for (const m of ALL_MATCHES.filter(x=>x.group===g)) {
-                const um2=um.find(x=>x.id===m.id);
-                const rm=real.find(x=>x.id===m.id);
-                const gh=um2?.gh??'-', ga=um2?.ga??'-';
-                const rgh=(rm?.gh!==null&&rm?.gh!==undefined)?rm.gh:'-';
-                const rga=(rm?.ga!==null&&rm?.ga!==undefined)?rm.ga:'-';
-                const p=(um2&&rm?.gh!==null&&rm?.ga!==null)?calcPoints(rm.gh,rm.ga,um2.gh,um2.ga):0;
-                h+=`<span style="font-size:0.85em">${m.home} <strong>${gh}-${ga}</strong> ${m.away} <span style="color:#888">(Real: ${rgh}-${rga})</span> <span style="color:#f5c518">[${p}pts]</span></span><br>`;
-            }
-        }
-        h+='</div>';
-    }
-    document.getElementById('allForecastsContainer').innerHTML = h || '<p style="color:#666">No hay usuarios registrados aún</p>';
-}
-
-// ── EMAIL ──
-function sendEmail() {
-    const cfg=getEjsConfig();
-    if(!cfg.serviceId||!cfg.templateId||!cfg.publicKey){alert('❌ Email no configurado. Admin debe configurarlo.'); return;}
-    emailjs.init(cfg.publicKey);
-    const users=getUsers();
-    const um=users[currentUser]?.matches||[];
-    const real=getReal();
-    let txt=`Pronósticos de ${currentUser}:\n\n`;
-    for(const m of ALL_MATCHES){
-        const u=um.find(x=>x.id===m.id);
-        const r=real.find(x=>x.id===m.id);
-        txt+=`${m.home} ${u?.gh??'-'}-${u?.ga??'-'} ${m.away} (Real: ${r?.gh??'-'}-${r?.ga??'-'})\n`;
-    }
-    emailjs.send(cfg.serviceId,cfg.templateId,{from_name:currentUser,message:txt,reply_to:currentUser+'@polla.com',to_email:cfg.adminMail})
-        .then(()=>alert('✅ Email enviado')).catch(e=>alert('❌ Error: '+e));
-}
-
-// ── ADMIN USER MANAGEMENT ──
 function renderUserList() {
     const users = getUsers();
     let h = `<table style="width:100%;border-collapse:collapse">
@@ -1280,77 +1182,52 @@ function renderUserList() {
             <th style="padding:10px 14px;background:#1a2540;text-align:left;color:#f5c518;font-size:0.85em">PARTIDOS</th>
             <th style="padding:10px 14px;background:#1a2540;text-align:center;color:#f5c518;font-size:0.85em">ACCIÓN</th>
         </tr></thead><tbody>`;
-
-    const userList = Object.entries(users).sort((a,b) => a[0].localeCompare(b[0]));
-
-    if (userList.length === 0) {
-        h += `<tr><td colspan="4" style="padding:20px;text-align:center;color:#555">No hay participantes aún</td></tr>`;
-    }
-
-    for (const [username, data] of userList) {
-        const filled = (data.matches || []).length;
-        h += `<tr style="border-bottom:1px solid #1e2a3a">
+    const userList = Object.entries(users).sort((a,b)=>a[0].localeCompare(b[0]));
+    if (userList.length===0) h += `<tr><td colspan="4" style="padding:20px;text-align:center;color:#555">No hay participantes</td></tr>`;
+    for (const [username,data] of userList) {
+        const filled=(data.matches||[]).length;
+        h+=`<tr style="border-bottom:1px solid #1e2a3a">
             <td style="padding:12px 14px;font-weight:bold">${username}</td>
-            <td style="padding:12px 14px">
-                <span id="pass_${username}" style="color:#aaa">${data.pass}</span>
-            </td>
-            <td style="padding:12px 14px;color:#888">${filled}/72 ingresados</td>
+            <td style="padding:12px 14px;color:#aaa">${data.pass}</td>
+            <td style="padding:12px 14px;color:#888">${filled}/72</td>
             <td style="padding:12px 14px;text-align:center">
-                <button onclick="changePassword('${username}')"
-                    style="padding:5px 12px;background:transparent;border:1px solid #2a3a5a;border-radius:4px;color:#aaa;cursor:pointer;margin-right:6px;font-size:0.85em">
-                    ✏️ Cambiar pass
-                </button>
-                <button onclick="deleteUser('${username}')"
-                    style="padding:5px 12px;background:transparent;border:1px solid #f44336;border-radius:4px;color:#f44336;cursor:pointer;font-size:0.85em">
-                    🗑️ Eliminar
-                </button>
+                <button onclick="changePassword('${username}')" style="padding:5px 12px;background:transparent;border:1px solid #2a3a5a;border-radius:4px;color:#aaa;cursor:pointer;margin-right:6px;font-size:0.85em">✏️ Pass</button>
+                <button onclick="deleteUser('${username}')" style="padding:5px 12px;background:transparent;border:1px solid #f44336;border-radius:4px;color:#f44336;cursor:pointer;font-size:0.85em">🗑️</button>
             </td>
         </tr>`;
     }
-
-    h += `</tbody></table>
-        <div style="margin-top:14px;color:#888;font-size:0.85em">
-            Total: <strong style="color:#f5c518">${userList.length}</strong> participantes
-        </div>`;
-
+    h+=`</tbody></table><div style="margin-top:14px;color:#888;font-size:0.85em">Total: <strong style="color:#f5c518">${userList.length}</strong> participantes</div>`;
     document.getElementById('userListContainer').innerHTML = h;
 }
 
 function addUser() {
     const username = document.getElementById('newUsername').value.trim();
     const password = document.getElementById('newPassword').value.trim();
-
-    if (!username || !password) { alert('Ingresa usuario y contraseña'); return; }
-    if (username === ADMIN_USER) { alert('Ese nombre está reservado'); return; }
-
+    if (!username||!password) { alert('Ingresa usuario y contraseña'); return; }
+    if (username===ADMIN_USER) { alert('Nombre reservado'); return; }
     const users = getUsers();
-    if (users[username]) {
-        if (!confirm(`El usuario "${username}" ya existe. ¿Cambiar su contraseña a "${password}"?`)) return;
-    }
-
-    users[username] = users[username] || { matches: [] };
+    users[username] = users[username] || {matches:[]};
     users[username].pass = password;
     setUsers(users);
-
-    document.getElementById('newUsername').value = '';
-    document.getElementById('newPassword').value = '';
+    document.getElementById('newUsername').value='';
+    document.getElementById('newPassword').value='';
     renderUserList();
-    alert(`✅ Usuario "${username}" ${users[username] ? 'actualizado' : 'creado'} correctamente`);
+    showToast('✅ Usuario "'+username+'" guardado');
 }
 
 function changePassword(username) {
     const newPass = prompt(`Nueva contraseña para "${username}":`);
-    if (!newPass || !newPass.trim()) return;
-    const users = getUsers();
-    users[username].pass = newPass.trim();
+    if (!newPass||!newPass.trim()) return;
+    const users=getUsers();
+    users[username].pass=newPass.trim();
     setUsers(users);
     renderUserList();
-    alert(`✅ Contraseña de "${username}" actualizada`);
+    showToast('✅ Contraseña actualizada');
 }
 
 function deleteUser(username) {
-    if (!confirm(`¿Eliminar al usuario "${username}" y todos sus pronósticos?`)) return;
-    const users = getUsers();
+    if (!confirm(`¿Eliminar "${username}" y sus pronósticos?`)) return;
+    const users=getUsers();
     delete users[username];
     setUsers(users);
     renderUserList();
@@ -1358,13 +1235,63 @@ function deleteUser(username) {
 }
 
 function resetAllUserMatches() {
-    if (!confirm('¿Seguro? Esto borra TODOS los pronósticos de todos los usuarios.')) return;
-    const users = getUsers();
-    for (const u in users) {
-        users[u].matches = [];
-    }
+    if (!confirm('¿Borrar TODOS los pronósticos de todos los usuarios?')) return;
+    const users=getUsers();
+    for (const u in users) users[u].matches=[];
     setUsers(users);
-    alert('✅ Pronósticos limpiados');
+    showToast('✅ Pronósticos limpiados');
+}
+
+function renderAllForecasts() {
+    const users=getUsers();
+    const real=getReal();
+    let h='';
+    for (const u in users) {
+        if (u===ADMIN_USER) continue;
+        const um=users[u].matches||[];
+        let pts=0;
+        for (const m of ALL_MATCHES) {
+            const um2=um.find(x=>x.id===m.id);
+            const rm=real.find(x=>x.id===m.id);
+            if(um2&&rm?.gh!==null&&rm?.ga!==null&&rm?.gh!==undefined&&rm?.ga!==undefined)
+                pts+=calcPoints(rm.gh,rm.ga,um2.gh,um2.ga);
+        }
+        h+=`<div class="match-card" style="margin-bottom:16px">
+            <strong style="color:#f5c518;font-size:1.1em">${u}</strong>
+            <span style="float:right;color:#f5c518">${pts} pts</span>
+            <hr style="border-color:#1e2a3a;margin:10px 0">`;
+        for (const g in GROUPS) {
+            h+=`<strong style="font-size:0.85em;color:#888">GRUPO ${g}</strong><br>`;
+            for (const m of ALL_MATCHES.filter(x=>x.group===g)) {
+                const um2=um.find(x=>x.id===m.id);
+                const rm=real.find(x=>x.id===m.id);
+                const gh=um2?.gh??'-', ga=um2?.ga??'-';
+                const rgh=(rm?.gh!==null&&rm?.gh!==undefined)?rm.gh:'-';
+                const rga=(rm?.ga!==null&&rm?.ga!==undefined)?rm.ga:'-';
+                const p=(um2&&rm?.gh!==null&&rm?.ga!==null&&rm?.gh!==undefined&&rm?.ga!==undefined)?calcPoints(rm.gh,rm.ga,um2.gh,um2.ga):0;
+                h+=`<span style="font-size:0.85em">${m.home} <strong>${gh}-${ga}</strong> ${m.away} <span style="color:#888">(Real: ${rgh}-${rga})</span> <span style="color:#f5c518">[${p}pts]</span></span><br>`;
+            }
+        }
+        h+='</div>';
+    }
+    document.getElementById('allForecastsContainer').innerHTML = h||'<p style="color:#666">No hay usuarios aún</p>';
+}
+
+function sendEmail() {
+    const cfg=getEjsConfig();
+    if(!cfg.serviceId||!cfg.templateId||!cfg.publicKey){alert('❌ Email no configurado'); return;}
+    emailjs.init(cfg.publicKey);
+    const users=getUsers();
+    const um=users[currentUser]?.matches||[];
+    const real=getReal();
+    let txt=`Pronósticos de ${currentUser}:\n\n`;
+    for(const m of ALL_MATCHES){
+        const u=um.find(x=>x.id===m.id);
+        const r=real.find(x=>x.id===m.id);
+        txt+=`${m.home} ${u?.gh??'-'}-${u?.ga??'-'} ${m.away}\n`;
+    }
+    emailjs.send(cfg.serviceId,cfg.templateId,{from_name:currentUser,message:txt,reply_to:currentUser+'@polla.com',to_email:cfg.adminMail})
+        .then(()=>showToast('✅ Email enviado')).catch(e=>alert('❌ Error: '+e));
 }
 
 function openEmailConfig() {
@@ -1384,7 +1311,7 @@ function saveEmailConfig() {
         publicKey:document.getElementById('publicKey').value,
         adminMail:document.getElementById('adminMail').value
     });
-    alert('✅ Config guardada');
+    showToast('✅ Config guardada');
 }
 </script>
 </body>
