@@ -438,7 +438,7 @@
 
     <div class="tabs" id="tabsContainer"></div>
 
-    <div id="miPronostico" class="tab-content active">
+    <div id="miPronostico" class="tab-content">
         <div class="section-title">Mi Pron&oacute;stico</div>
         <p style="color:#666;font-size:0.85em;margin-bottom:16px">Tablas seg&uacute;n tus resultados</p>
         <div class="legend">
@@ -469,7 +469,7 @@
         <div id="rankingContainer"></div>
     </div>
 
-    <div id="comoJugar" class="tab-content">
+    <div id="comoJugar" class="tab-content active">
         <div class="section-title">&#10067; C&oacute;mo Jugar</div>
         <div class="instructions">
             <h3>&#9917; C&oacute;mo participar</h3>
@@ -834,7 +834,7 @@ function showApp() {
 function init() {
     const isAdmin = currentUser === ADMIN_USER;
     let tabs = `
-        <button class="tab-btn active" onclick="switchTab('miPronostico',this)">Mi Pronóstico</button>
+        <button class="tab-btn active" onclick="switchTab('comoJugar',this)">❓ Cómo Jugar</button>
         <button class="tab-btn" onclick="switchTab('misPartidos',this)">Mis Partidos</button>
         <button class="tab-btn" onclick="switchTab('mis3eros',this)">Mis 3eros</button>
         <button class="tab-btn" onclick="switchTab('resultadosReales',this)">Resultados Reales</button>
