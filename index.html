@@ -183,6 +183,32 @@
 
         /* ── PARTIDOS ── */
         .date-section{margin-bottom:28px}
+        .countdown{
+            display:inline-block;
+            font-family:'Bebas Neue',cursive;
+            font-size:0.75em;
+            background:#0d2a0d;
+            color:#4caf50;
+            border:1px solid #2a5a2a;
+            padding:4px 12px;
+            border-radius:4px;
+            margin-left:12px;
+            letter-spacing:2px;
+            vertical-align:middle;
+        }
+        .locked-badge{
+            display:inline-block;
+            font-family:'Bebas Neue',cursive;
+            font-size:0.75em;
+            background:#2a0d0d;
+            color:#f44336;
+            border:1px solid #5a2a2a;
+            padding:4px 12px;
+            border-radius:4px;
+            margin-left:12px;
+            letter-spacing:2px;
+            vertical-align:middle;
+        }
         .date-header{
             font-family:'Bebas Neue',cursive;
             font-size:1.4em;
@@ -593,10 +619,9 @@ const GROUPS = {
 
 // Fixture real FIFA 2026 - fase de grupos (72 partidos)
 const ALL_MATCHES = [
-    // ── PARTIDOS DE PRUEBA (borrar después) ──
-    {id:98,group:"A",home:"🧪 Prueba HOY",away:"(debe estar ABIERTO)",date:"2026-05-26"},
-    {id:99,group:"A",home:"🔒 Prueba MAÑANA",away:"(debe estar BLOQUEADO)",date:"2026-05-27"},
-    // ─────────────────────────────────────────
+    // ── PARTIDO DE PRUEBA (borrar después) ──
+    {id:99,group:"A",home:"🧪 PRUEBA",away:"(se bloquea 27 May 00:00)",date:"2026-05-27"},
+    // ──────────────────────────────────────────
     // Jue 11 Jun
     {id:0,group:"A",home:"México",away:"Sudáfrica",date:"2026-06-11"},
     {id:1,group:"A",home:"Corea del Sur",away:"República Checa",date:"2026-06-11"},
@@ -922,6 +947,36 @@ function renderMyMatches() {
         <button class="btn-save" onclick="saveMyMatches()">💾 Guardar</button>
         <button class="btn-sec" onclick="sendEmail()">📧 Enviar por email</button>
     `;
+
+    // Start live countdowns
+    if (window._countdownInterval) clearInterval(window._countdownInterval);
+    window._countdownInterval = setInterval(() => {
+        const dates = Object.keys(byDate);
+        dates.forEach(date => {
+            if (isLocked(date)) return;
+            const dateId = date.replace(/-/g,'');
+            const el = document.getElementById('cd_' + dateId);
+            if (!el) return;
+            const now = new Date();
+            const matchDay = new Date(date + 'T00:00:00');
+            const diff = matchDay - now;
+            if (diff <= 0) {
+                // Just locked! Reload matches to show lock state
+                renderMyMatches();
+                return;
+            }
+            const dias = Math.floor(diff / 86400000);
+            const hh = Math.floor((diff % 86400000) / 3600000);
+            const mm = Math.floor((diff % 3600000) / 60000);
+            const ss = Math.floor((diff % 60000) / 1000);
+            const parts = [];
+            if (dias > 0) parts.push(dias + 'd');
+            parts.push(String(hh).padStart(2,'0') + 'h');
+            parts.push(String(mm).padStart(2,'0') + 'm');
+            parts.push(String(ss).padStart(2,'0') + 's');
+            el.textContent = '⏱ ' + parts.join(' ');
+        });
+    }, 1000);
 }
 
 function saveMyMatches() {
