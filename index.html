@@ -648,7 +648,7 @@ const GROUPS = {
 const ALL_MATCHES = [
 
     // Jue 11 Jun
-    {id:0,group:"A",home:"México",away:"Sudáfrica",date:"2026-06-26"},
+    {id:0,group:"A",home:"México",away:"Sudáfrica",date:"2026-06-11"},
     {id:1,group:"A",home:"Corea del Sur",away:"República Checa",date:"2026-06-11"},
     // Vie 12 Jun
     {id:2,group:"B",home:"Canadá",away:"Bosnia y Herzegovina",date:"2026-06-12"},
@@ -664,7 +664,7 @@ const ALL_MATCHES = [
     {id:10,group:"E",home:"Costa de Marfil",away:"Ecuador",date:"2026-06-14"},
     {id:11,group:"F",home:"Suecia",away:"Túnez",date:"2026-06-14"},
     // Lun 15 Jun
-    {id:12,group:"H",home:"España",away:"Cabo Verde",date:"2026-06-26"},
+    {id:12,group:"H",home:"España",away:"Cabo Verde",date:"2026-06-15"},
     {id:13,group:"G",home:"Bélgica",away:"Egipto",date:"2026-06-15"},
     {id:14,group:"H",home:"Arabia Saudita",away:"Uruguay",date:"2026-06-15"},
     {id:15,group:"G",home:"Irán",away:"Nueva Zelanda",date:"2026-06-15"},
@@ -836,10 +836,10 @@ function init() {
     let tabs = `
         <button class="tab-btn active" onclick="switchTab('comoJugar',this)">❓ Cómo Jugar</button>
         <button class="tab-btn" onclick="switchTab('misPartidos',this)">Mis Partidos</button>
+        <button class="tab-btn" onclick="switchTab('miPronostico',this)">Mi Pronóstico</button>
         <button class="tab-btn" onclick="switchTab('mis3eros',this)">Mis 3eros</button>
         <button class="tab-btn" onclick="switchTab('resultadosReales',this)">Resultados Reales</button>
         <button class="tab-btn" onclick="switchTab('clasificacion',this)">🏆 Clasificación</button>
-        <button class="tab-btn" onclick="switchTab('comoJugar',this)">❓ Cómo Jugar</button>
     `;
     if (isAdmin) {
         tabs += `<button class="tab-btn" onclick="switchTab('adminPanel',this)">📋 Ver Pronósticos</button>`;
