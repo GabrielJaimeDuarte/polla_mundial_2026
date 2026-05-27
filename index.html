@@ -278,6 +278,21 @@
         }
         .score-inp:focus{outline:none;border-color:#f5c518}
         .score-inp::placeholder{color:#555;font-size:1em}
+        .score-locked{
+            width:44px;
+            padding:5px 2px;
+            background:#1a1a2e;
+            border:1px solid #f44336;
+            border-radius:5px;
+            color:#aaa;
+            text-align:center;
+            font-size:1.1em;
+            font-weight:bold;
+            font-family:'Bebas Neue',cursive;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
         .score-inp:disabled{color:#555;border-color:#1e2a3a}
         .score-sep{color:#555;font-size:1.2em}
         .lock-badge{
@@ -633,7 +648,7 @@ const GROUPS = {
 const ALL_MATCHES = [
 
     // Jue 11 Jun
-    {id:0,group:"A",home:"México",away:"Sudáfrica",date:"2026-06-26"},
+    {id:0,group:"A",home:"México",away:"Sudáfrica",date:"2026-06-11"},
     {id:1,group:"A",home:"Corea del Sur",away:"República Checa",date:"2026-06-11"},
     // Vie 12 Jun
     {id:2,group:"B",home:"Canadá",away:"Bosnia y Herzegovina",date:"2026-06-12"},
@@ -970,21 +985,44 @@ function renderMyMatches() {
 
         for (const m of byDate[date]) {
             const u = um.find(x=>x.id===m.id);
-            const gh=u?.gh??'', ga=u?.ga??'';
-            h += `<div class="match-card">
-                <div class="match-meta">
-                    <span class="group-badge">GRUPO ${m.group}</span>
-                </div>
-                <div class="match-row">
-                    <div class="team-left"><span>${m.home}</span>${flag(m.home)}</div>
-                    <div class="score-box">
-                        <input type="number" class="score-inp" id="gh_${m.id}" value="${gh}" placeholder="0" min="0">
-                        <span class="score-sep">-</span>
-                        <input type="number" class="score-inp" id="ga_${m.id}" value="${ga}" placeholder="0" min="0">
+            const gh = u?.gh ?? '';
+            const ga = u?.ga ?? '';
+
+            if (locked) {
+                // Partido bloqueado: mostrar resultado guardado (o ?? si no llenó)
+                const dispGh = (gh !== '') ? gh : '?';
+                const dispGa = (ga !== '') ? ga : '?';
+                h += `<div class="match-card" style="opacity:0.7;border-left-color:#f44336">
+                    <div class="match-meta">
+                        <span class="group-badge">GRUPO ${m.group}</span>
+                        <span style="color:#f44336;font-size:0.8em">🔒 CERRADO</span>
                     </div>
-                    <div class="team-right">${flag(m.away)}<span>${m.away}</span></div>
-                </div>
-            </div>`;
+                    <div class="match-row">
+                        <div class="team-left"><span>${m.home}</span>${flag(m.home)}</div>
+                        <div class="score-box">
+                            <div class="score-locked">${dispGh}</div>
+                            <span class="score-sep">-</span>
+                            <div class="score-locked">${dispGa}</div>
+                        </div>
+                        <div class="team-right">${flag(m.away)}<span>${m.away}</span></div>
+                    </div>
+                </div>`;
+            } else {
+                h += `<div class="match-card">
+                    <div class="match-meta">
+                        <span class="group-badge">GRUPO ${m.group}</span>
+                    </div>
+                    <div class="match-row">
+                        <div class="team-left"><span>${m.home}</span>${flag(m.home)}</div>
+                        <div class="score-box">
+                            <input type="number" class="score-inp" id="gh_${m.id}" value="${gh}" placeholder="?" min="0">
+                            <span class="score-sep">-</span>
+                            <input type="number" class="score-inp" id="ga_${m.id}" value="${ga}" placeholder="?" min="0">
+                        </div>
+                        <div class="team-right">${flag(m.away)}<span>${m.away}</span></div>
+                    </div>
+                </div>`;
+            }
         }
         h += '</div></div>';
     }
