@@ -1449,10 +1449,60 @@ function saveEmailConfig() {
 }
 </script>
 <script>
-// ── ELIMINATORIAS ──
-function getTopFromGroup(groupName, matchList) {
-    return calcStandings(groupName, matchList);
+// ══════════════════════════════════════════
+// ELIMINATORIAS
+// ══════════════════════════════════════════
+
+// All matches flat list
+function getAllElimMatches() {
+    return [...BRACKET_16, ...BRACKET_LATER];
 }
+
+// Storage
+function getElimResults() {
+    try { return JSON.parse(localStorage.getItem('wc2026_elim')||'{}'); } catch { return {}; }
+}
+function setElimResults(r) {
+    localStorage.setItem('wc2026_elim', JSON.stringify(r));
+    if (db) db.ref('elim').set(r).catch(()=>{});
+}
+function getElimConfig() {
+    try { return JSON.parse(localStorage.getItem('wc2026_elimcfg')||'{}'); } catch { return {}; }
+}
+function setElimConfig(c) {
+    localStorage.setItem('wc2026_elimcfg', JSON.stringify(c));
+    if (db) db.ref('elimcfg').set(c).catch(()=>{});
+}
+function getUserElimPicks() {
+    try {
+        const all = JSON.parse(localStorage.getItem('wc2026_userpicks')||'{}');
+        return all[currentUser] || {};
+    } catch { return {}; }
+}
+function setUserElimPicks(picks) {
+    const all = JSON.parse(localStorage.getItem('wc2026_userpicks')||'{}');
+    all[currentUser] = picks;
+    localStorage.setItem('wc2026_userpicks', JSON.stringify(all));
+    if (db) db.ref('userpicks').set(all).catch(()=>{});
+}
+
+// Rounds config
+const ROUNDS_CONFIG = [
+    {key:'r16',   label:'🏟️ Dieciseisavos', ids:['P73','P74','P75','P76','P77','P78','P79','P80','P81','P82','P83','P84','P85','P86','P87','P88']},
+    {key:'r8',    label:'⚔️ Octavos',        ids:['P89','P90','P91','P92','P93','P94','P95','P96']},
+    {key:'r4',    label:'🥊 Cuartos',         ids:['P97','P98','P99','P100']},
+    {key:'semi',  label:'🔥 Semifinales',     ids:['P101','P102']},
+    {key:'third', label:'🥉 Tercer Puesto',   ids:['P103']},
+    {key:'final', label:'🏆 Final',           ids:['P104']},
+];
+
+function getRoundKey(matchId) {
+    for (const r of ROUNDS_CONFIG) if (r.ids.includes(matchId)) return r.key;
+    return null;
+}
+
+// Standings helpers
+function getTopFromGroup(g, matchList) { return calcStandings(g, matchList); }
 
 function getBest3rds(matchList) {
     const thirds = [];
@@ -1469,50 +1519,6 @@ function getBest3rds(matchList) {
     return thirds.slice(0,8);
 }
 
-const BRACKET_16 = [
-    {id:'P73',date:'Jun 28',teamA:{type:'2nd',group:'A'},teamB:{type:'2nd',group:'B'},venue:'Los Ángeles'},
-    {id:'P74',date:'Jun 29',teamA:{type:'1st',group:'E'},teamB:{type:'3rd',groups:'ABCDF'},venue:'Boston'},
-    {id:'P75',date:'Jun 29',teamA:{type:'1st',group:'F'},teamB:{type:'2nd',group:'C'},venue:'Monterrey'},
-    {id:'P76',date:'Jun 29',teamA:{type:'1st',group:'E'},teamB:{type:'2nd',group:'F'},venue:'Houston'},
-    {id:'P77',date:'Jun 30',teamA:{type:'1st',group:'I'},teamB:{type:'3rd',groups:'CDFGH'},venue:'Nueva York'},
-    {id:'P78',date:'Jun 30',teamA:{type:'2nd',group:'E'},teamB:{type:'2nd',group:'I'},venue:'Dallas'},
-    {id:'P79',date:'Jun 30',teamA:{type:'1st',group:'A'},teamB:{type:'3rd',groups:'CEFHI'},venue:'Cd. México'},
-    {id:'P80',date:'Jul 1', teamA:{type:'1st',group:'L'},teamB:{type:'3rd',groups:'EHIJK'},venue:'Atlanta'},
-    {id:'P81',date:'Jul 1', teamA:{type:'1st',group:'D'},teamB:{type:'3rd',groups:'BEFIJ'},venue:'San Francisco'},
-    {id:'P82',date:'Jul 1', teamA:{type:'1st',group:'G'},teamB:{type:'3rd',groups:'AEHIJ'},venue:'Seattle'},
-    {id:'P83',date:'Jul 2', teamA:{type:'2nd',group:'K'},teamB:{type:'2nd',group:'L'},venue:'Toronto'},
-    {id:'P84',date:'Jul 2', teamA:{type:'1st',group:'H'},teamB:{type:'2nd',group:'J'},venue:'Los Ángeles'},
-    {id:'P85',date:'Jul 2', teamA:{type:'1st',group:'B'},teamB:{type:'3rd',groups:'EFGIJ'},venue:'Vancouver'},
-    {id:'P86',date:'Jul 3', teamA:{type:'1st',group:'J'},teamB:{type:'2nd',group:'H'},venue:'Miami'},
-    {id:'P87',date:'Jul 3', teamA:{type:'1st',group:'K'},teamB:{type:'3rd',groups:'DEJIL'},venue:'Kansas City'},
-    {id:'P88',date:'Jul 3', teamA:{type:'2nd',group:'D'},teamB:{type:'2nd',group:'G'},venue:'Dallas'},
-];
-
-// Octavos, Cuartos, Semis, Final, 3er puesto
-const BRACKET_LATER = [
-    // Octavos (basados en ganadores de 16avos)
-    {id:'P89',round:'Octavos',date:'Jul 4', teamA:'Gan. P74',teamB:'Gan. P77',venue:'Filadelfia'},
-    {id:'P90',round:'Octavos',date:'Jul 4', teamA:'Gan. P73',teamB:'Gan. P75',venue:'Houston'},
-    {id:'P91',round:'Octavos',date:'Jul 5', teamA:'Gan. P76',teamB:'Gan. P78',venue:'Nueva York'},
-    {id:'P92',round:'Octavos',date:'Jul 5', teamA:'Gan. P79',teamB:'Gan. P80',venue:'Cd. México'},
-    {id:'P93',round:'Octavos',date:'Jul 6', teamA:'Gan. P83',teamB:'Gan. P84',venue:'Dallas'},
-    {id:'P94',round:'Octavos',date:'Jul 6', teamA:'Gan. P81',teamB:'Gan. P82',venue:'Seattle'},
-    {id:'P95',round:'Octavos',date:'Jul 7', teamA:'Gan. P86',teamB:'Gan. P88',venue:'Atlanta'},
-    {id:'P96',round:'Octavos',date:'Jul 7', teamA:'Gan. P85',teamB:'Gan. P87',venue:'Vancouver'},
-    // Cuartos
-    {id:'P97', round:'Cuartos',date:'Jul 9', teamA:'Gan. P89',teamB:'Gan. P90',venue:'Boston'},
-    {id:'P98', round:'Cuartos',date:'Jul 10',teamA:'Gan. P93',teamB:'Gan. P94',venue:'Los Ángeles'},
-    {id:'P99', round:'Cuartos',date:'Jul 11',teamA:'Gan. P91',teamB:'Gan. P92',venue:'Miami'},
-    {id:'P100',round:'Cuartos',date:'Jul 11',teamA:'Gan. P95',teamB:'Gan. P96',venue:'Kansas City'},
-    // Semis
-    {id:'P101',round:'Semifinal',date:'Jul 14',teamA:'Gan. P97', teamB:'Gan. P98', venue:'Dallas'},
-    {id:'P102',round:'Semifinal',date:'Jul 15',teamA:'Gan. P99', teamB:'Gan. P100',venue:'Atlanta'},
-    // 3er puesto
-    {id:'P103',round:'3er Puesto',date:'Jul 18',teamA:'Per. P101',teamB:'Per. P102',venue:'Miami'},
-    // Final
-    {id:'P104',round:'FINAL 🏆',date:'Jul 19',teamA:'Gan. P101',teamB:'Gan. P102',venue:'Nueva York'},
-];
-
 function resolveTeam(slot, standings, best3rds) {
     if (slot.type==='1st') { const s=standings[slot.group]; return s&&s[0]?s[0][0]:'?'; }
     if (slot.type==='2nd') { const s=standings[slot.group]; return s&&s[1]?s[1][0]:'?'; }
@@ -1523,61 +1529,86 @@ function resolveTeam(slot, standings, best3rds) {
     return '?';
 }
 
-function getElimResults() {
-    try { return JSON.parse(localStorage.getItem('wc2026_elim')||'{}'); } catch { return {}; }
-}
-function setElimResults(r) {
-    localStorage.setItem('wc2026_elim', JSON.stringify(r));
-    if (db) db.ref('elim').set(r).catch(()=>{});
-}
-// Config de qué rondas están abiertas para que usuarios pongan picks
-function getElimConfig() {
-    try { return JSON.parse(localStorage.getItem('wc2026_elimcfg')||'{}'); } catch { return {}; }
-}
-function setElimConfig(c) {
-    localStorage.setItem('wc2026_elimcfg', JSON.stringify(c));
-    if (db) db.ref('elimcfg').set(c).catch(()=>{});
-}
-// Picks de usuarios en eliminatorias
-function getUserElimPicks() {
-    try {
-        const all = JSON.parse(localStorage.getItem('wc2026_userpicks')||'{}');
-        return all[currentUser] || {};
-    } catch { return {}; }
-}
-function setUserElimPicks(picks) {
-    try {
-        const all = JSON.parse(localStorage.getItem('wc2026_userpicks')||'{}');
-        all[currentUser] = picks;
-        localStorage.setItem('wc2026_userpicks', JSON.stringify(all));
-        if (db) db.ref('userpicks').set(all).catch(()=>{});
-    } catch(e) { console.error(e); }
+function resolveElimTeam(label, elimResults) {
+    const m = label.match(/(Gan|Per)\. (P\d+)/);
+    if (!m) return null;
+    const isWinner = m[1]==='Gan';
+    const pid = m[2];
+    const res = elimResults[pid];
+    if (!res || res.ghA===undefined || res.ghB===undefined || res.ghA==='' || res.ghB==='') return null;
+    const ghA=Number(res.ghA), ghB=Number(res.ghB);
+    if (isWinner) {
+        if (ghA>ghB) return res.teamA||null;
+        if (ghB>ghA) return res.teamB||null;
+        return res.winner||null; // penales
+    } else {
+        if (ghA>ghB) return res.teamB||null;
+        if (ghB>ghA) return res.teamA||null;
+        return res.loser||null;
+    }
 }
 
+// Get team names for a match
+function getMatchTeams(match, elimResults, forceMatchList) {
+    let teamA, teamB;
+    if (match.teamA && typeof match.teamA === 'object') {
+        const ml = forceMatchList || [];
+        const standings = {};
+        for (const g in GROUPS) standings[g] = calcStandings(g, ml);
+        const best3rds = getBest3rds(ml);
+        teamA = resolveTeam(match.teamA, standings, best3rds);
+        teamB = resolveTeam(match.teamB, standings, best3rds);
+    } else {
+        teamA = resolveElimTeam(match.teamA, elimResults) || match.teamA;
+        teamB = resolveElimTeam(match.teamB, elimResults) || match.teamB;
+    }
+    return {teamA, teamB};
+}
+
+// Points calc (same as group stage)
+function calcElimPoints(realGhA, realGhB, pickGhA, pickGhB) {
+    if (realGhA===null||realGhA===undefined||realGhA===''||
+        realGhB===null||realGhB===undefined||realGhB===''||
+        pickGhA===null||pickGhA===undefined||pickGhA===''||
+        pickGhB===null||pickGhB===undefined||pickGhB==='') return 0;
+    const rA=Number(realGhA), rB=Number(realGhB), pA=Number(pickGhA), pB=Number(pickGhB);
+    let pts=0;
+    if (pA===rA) pts++;
+    if (pB===rB) pts++;
+    const rw=rA>rB?1:rA<rB?-1:0, pw=pA>pB?1:pA<pB?-1:0;
+    if (rw===pw) pts+=2;
+    if (pA===rA&&pB===rB) pts+=3;
+    return pts;
+}
+
+// ── VIEW TOGGLE ──
 function showElimView(mode) {
-    document.getElementById('btnElimMi').className = 'toggle-btn'+(mode==='miPolla'?' toggle-active':'');
-    document.getElementById('btnElimReal').className = 'toggle-btn'+(mode==='real'?' toggle-active':'');
-    document.getElementById('btnElimUser').className = 'toggle-btn'+(mode==='userPick'?' toggle-active':'');
+    ['btnElimMi','btnElimReal','btnElimUser'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.className = 'toggle-btn';
+    });
+    const activeBtn = {miPolla:'btnElimMi', real:'btnElimReal', userPick:'btnElimUser'}[mode];
+    const el = document.getElementById(activeBtn);
+    if (el) el.className = 'toggle-btn toggle-active';
     if (mode==='userPick') renderUserElimPicks();
     else renderEliminatorias(mode);
 }
 
-function matchCard16(match, teamA, teamB, elimResults) {
-    const res = elimResults[match.id] || {};
-    const ghA = res.ghA!==undefined ? res.ghA : '';
-    const ghB = res.ghB!==undefined ? res.ghB : '';
-    const hasResult = ghA!=='' && ghB!=='';
-    const winner = hasResult ? (ghA>ghB?teamA:ghA<ghB?teamB:'Penales') : '';
-    const labelA = match.teamA.type==='1st'?`1º Grp ${match.teamA.group}`:
-                   match.teamA.type==='2nd'?`2º Grp ${match.teamA.group}`:
-                   `3º mejor (${match.teamA.groups})`;
-    const labelB = match.teamB.type==='1st'?`1º Grp ${match.teamB.group}`:
-                   match.teamB.type==='2nd'?`2º Grp ${match.teamB.group}`:
-                   `3º mejor (${match.teamB.groups})`;
+// ── SECTION HEADER ──
+function sectionHeader(title, color) {
+    return `<div style="font-family:'Bebas Neue',cursive;font-size:1.1em;letter-spacing:2px;color:#f5c518;margin:20px 0 10px;padding:8px 12px;background:#1a2540;border-radius:6px">${title}</div>`;
+}
+
+// ── RENDER MATCH CARD (display only) ──
+function matchDisplayCard(id, teamA, teamB, date, venue, labelA, labelB, elimResults) {
+    const res = elimResults[id]||{};
+    const ghA=res.ghA!==undefined&&res.ghA!==''?res.ghA:null;
+    const ghB=res.ghB!==undefined&&res.ghB!==''?res.ghB:null;
+    const hasResult = ghA!==null&&ghB!==null;
     return `<div style="background:#0f1428;border-radius:8px;padding:12px 14px;border-left:3px solid ${hasResult?'#f5c518':'#1e2a3a'}">
         <div style="display:flex;justify-content:space-between;font-size:0.72em;color:#555;margin-bottom:8px">
-            <span style="color:#f5c518;font-weight:bold">${match.id}</span>
-            <span>📅 ${match.date} · ${match.venue}</span>
+            <span style="color:#f5c518;font-weight:bold">${id}</span>
+            <span>📅 ${date} · ${venue}</span>
         </div>
         <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center">
             <div style="text-align:right">
@@ -1585,355 +1616,276 @@ function matchCard16(match, teamA, teamB, elimResults) {
                 <div style="font-weight:bold;font-size:0.9em;color:${teamA==='?'?'#555':'#fff'}">${flag(teamA)} ${teamA}</div>
             </div>
             <div style="text-align:center;min-width:60px">
-                ${hasResult
-                    ? `<span style="font-family:'Bebas Neue',cursive;font-size:1.2em;color:#f5c518">${ghA} - ${ghB}</span>`
-                    : `<span style="color:#333;font-size:0.85em">vs</span>`
-                }
+                ${hasResult?`<span style="font-family:'Bebas Neue',cursive;font-size:1.2em;color:#f5c518">${ghA}-${ghB}</span>`
+                           :`<span style="color:#333;font-size:0.85em">vs</span>`}
             </div>
             <div style="text-align:left">
                 <div style="font-size:0.7em;color:#555;margin-bottom:2px">${labelB}</div>
                 <div style="font-weight:bold;font-size:0.9em;color:${teamB==='?'?'#555':'#fff'}">${teamB} ${flag(teamB)}</div>
             </div>
         </div>
-        ${winner?`<div style="text-align:center;margin-top:6px;font-size:0.75em;color:#4caf50">✅ Avanza: ${winner}</div>`:''}
     </div>`;
 }
 
-function matchCardLater(match, elimResults) {
-    const res = elimResults[match.id] || {};
-    const ghA = res.ghA!==undefined ? res.ghA : '';
-    const ghB = res.ghB!==undefined ? res.ghB : '';
-    const hasResult = ghA!=='' && ghB!=='';
-    // Resolve actual team names from previous results
-    const teamA = resolveElimTeam(match.teamA, elimResults) || match.teamA;
-    const teamB = resolveElimTeam(match.teamB, elimResults) || match.teamB;
-    const isWinner = match.teamA.startsWith('Gan.');
-    const borderColor = match.round==='FINAL 🏆'?'#f5c518':match.round==='Semifinal'?'#9e9e9e':match.round==='3er Puesto'?'#cd7f32':'#1e2a3a';
-    return `<div style="background:#0f1428;border-radius:8px;padding:12px 14px;border-left:3px solid ${borderColor}">
-        <div style="display:flex;justify-content:space-between;font-size:0.72em;margin-bottom:8px">
-            <span style="color:#f5c518;font-weight:bold">${match.id}</span>
-            <span style="color:#555">📅 ${match.date} · ${match.venue}</span>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center">
-            <div style="text-align:right">
-                <div style="font-size:0.75em;color:#555;margin-bottom:2px">${match.teamA}</div>
-                <div style="font-weight:bold;font-size:0.9em;color:${teamA===match.teamA?'#555':'#fff'}">${flag(teamA)} ${teamA}</div>
-            </div>
-            <div style="text-align:center;min-width:60px">
-                ${hasResult
-                    ? `<span style="font-family:'Bebas Neue',cursive;font-size:1.2em;color:#f5c518">${ghA} - ${ghB}</span>`
-                    : `<span style="color:#333;font-size:0.85em">vs</span>`
-                }
-            </div>
-            <div style="text-align:left">
-                <div style="font-size:0.75em;color:#555;margin-bottom:2px">${match.teamB}</div>
-                <div style="font-weight:bold;font-size:0.9em;color:${teamB===match.teamB?'#555':'#fff'}">${teamB} ${flag(teamB)}</div>
-            </div>
-        </div>
-    </div>`;
-}
-
-function resolveElimTeam(label, elimResults) {
-    // e.g. "Gan. P73" -> look up who won P73
-    const m = label.match(/(Gan|Per)\. (P\d+)/);
-    if (!m) return null;
-    const isWinner = m[1]==='Gan';
-    const pid = m[2];
-    const res = elimResults[pid];
-    if (!res || res.ghA===undefined || res.ghB===undefined) return null;
-    if (res.ghA === res.ghB) return res.winner||null; // penales - admin defines winner
-    if (isWinner) return res.ghA > res.ghB ? res.teamA : res.teamB;
-    return res.ghA > res.ghB ? res.teamB : res.teamA;
-}
-
-function sectionHeader(title) {
-    return `<div style="font-family:'Bebas Neue',cursive;font-size:1.1em;letter-spacing:2px;color:#f5c518;margin:20px 0 10px;padding:8px 12px;background:#1a2540;border-radius:6px">${title}</div>`;
-}
-
+// ── RENDER ELIMINATORIAS (view only - mi polla / real) ──
 function renderEliminatorias(mode) {
     const users = getUsers();
     const matchList = mode==='miPolla'
         ? (users[currentUser]?.matches||[])
         : getReal().filter(m=>m.gh!==null&&m.gh!==undefined);
 
-    const standings = {};
-    for (const g in GROUPS) standings[g] = calcStandings(g, matchList);
+    const standings={};
+    for (const g in GROUPS) standings[g]=calcStandings(g,matchList);
     const best3rds = getBest3rds(matchList);
     const elimResults = getElimResults();
 
+    function getLabel(slot) {
+        if (!slot||typeof slot!=='object') return slot||'';
+        if (slot.type==='1st') return `1º Grp ${slot.group}`;
+        if (slot.type==='2nd') return `2º Grp ${slot.group}`;
+        return `3º (${slot.groups})`;
+    }
+
     let h = `<div style="margin-bottom:12px;padding:8px 14px;background:#1a2540;border-radius:6px;font-size:0.78em;color:#888">
-        <strong style="color:#f5c518">Criterios desempate:</strong>
-        Pts → DG → GF → H2H → Fair Play → FIFA Ranking
+        <strong style="color:#f5c518">Criterios desempate:</strong> Pts → DG → GF → H2H → Fair Play → FIFA Ranking
     </div>`;
 
-    // 16avos
-    h += sectionHeader('🏟️ DIECISEISAVOS DE FINAL (P73–P88)');
-    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:8px">';
-    for (const match of BRACKET_16) {
-        const teamA = resolveTeam(match.teamA, standings, best3rds);
-        const teamB = resolveTeam(match.teamB, standings, best3rds);
-        // Store team names in elimResults for later rounds
-        if (!elimResults[match.id]) elimResults[match.id] = {};
-        elimResults[match.id].teamA = teamA;
-        elimResults[match.id].teamB = teamB;
-        h += matchCard16(match, teamA, teamB, elimResults);
-    }
-    h += '</div>';
+    const roundSections = [
+        {title:'🏟️ DIECISEISAVOS (P73–P88)', matches:BRACKET_16},
+        {title:'⚔️ OCTAVOS (P89–P96)',        matches:BRACKET_LATER.filter(m=>m.round==='Octavos')},
+        {title:'🥊 CUARTOS (P97–P100)',        matches:BRACKET_LATER.filter(m=>m.round==='Cuartos')},
+        {title:'🔥 SEMIFINALES (P101–P102)',   matches:BRACKET_LATER.filter(m=>m.round==='Semifinal')},
+        {title:'🏅 3ER PUESTO & FINAL',        matches:BRACKET_LATER.filter(m=>m.round==='3er Puesto'||m.round==='FINAL 🏆')},
+    ];
 
-    // Octavos
-    h += sectionHeader('⚔️ OCTAVOS DE FINAL (P89–P96)');
-    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:8px">';
-    for (const match of BRACKET_LATER.filter(m=>m.round==='Octavos')) {
-        h += matchCardLater(match, elimResults);
+    for (const sec of roundSections) {
+        h += sectionHeader(sec.title);
+        h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px">';
+        for (const match of sec.matches) {
+            let teamA,teamB,labelA,labelB;
+            if (match.teamA&&typeof match.teamA==='object') {
+                teamA=resolveTeam(match.teamA,standings,best3rds);
+                teamB=resolveTeam(match.teamB,standings,best3rds);
+                labelA=getLabel(match.teamA); labelB=getLabel(match.teamB);
+                // store for later resolution
+                if(!elimResults[match.id]) elimResults[match.id]={};
+                elimResults[match.id].teamA=teamA;
+                elimResults[match.id].teamB=teamB;
+            } else {
+                teamA=resolveElimTeam(match.teamA,elimResults)||match.teamA;
+                teamB=resolveElimTeam(match.teamB,elimResults)||match.teamB;
+                labelA=match.teamA; labelB=match.teamB;
+            }
+            h += matchDisplayCard(match.id,teamA,teamB,match.date,match.venue,labelA,labelB,elimResults);
+        }
+        h += '</div>';
     }
-    h += '</div>';
-
-    // Cuartos
-    h += sectionHeader('🥊 CUARTOS DE FINAL (P97–P100)');
-    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:8px">';
-    for (const match of BRACKET_LATER.filter(m=>m.round==='Cuartos')) {
-        h += matchCardLater(match, elimResults);
-    }
-    h += '</div>';
-
-    // Semis
-    h += sectionHeader('🔥 SEMIFINALES (P101–P102)');
-    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:8px">';
-    for (const match of BRACKET_LATER.filter(m=>m.round==='Semifinal')) {
-        h += matchCardLater(match, elimResults);
-    }
-    h += '</div>';
-
-    // 3er puesto + Final
-    h += sectionHeader('🏅 TERCER PUESTO & FINAL');
-    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:8px">';
-    for (const match of BRACKET_LATER.filter(m=>m.round==='3er Puesto'||m.round==='FINAL 🏆')) {
-        h += matchCardLater(match, elimResults);
-    }
-    h += '</div>';
-
     document.getElementById('elimContainer').innerHTML = h;
 }
 
-// ── ADMIN: ELIM RESULTS ──
-function renderAdminElimResults() {
-    const elimResults = getElimResults();
-    const allMatches = [...BRACKET_16.map(m=>({...m,teamA_label:m.teamA?.group?`${m.teamA.type==='1st'?'1º':'2º'} Grp ${m.teamA.group}`:`3º (${m.teamA.groups})`,teamB_label:m.teamB?.group?`${m.teamB.type==='1st'?'1º':'2º'} Grp ${m.teamB.group}`:`3º (${m.teamB.groups})`})),
-        ...BRACKET_LATER.map(m=>({...m,teamA_label:m.teamA,teamB_label:m.teamB}))];
-
-    const rounds = ['DIECISEISAVOS','Octavos','Cuartos','Semifinal','3er Puesto','FINAL 🏆'];
-    const roundMap = {
-        'DIECISEISAVOS': BRACKET_16.map(m=>m.id),
-        'Octavos': BRACKET_LATER.filter(m=>m.round==='Octavos').map(m=>m.id),
-        'Cuartos': BRACKET_LATER.filter(m=>m.round==='Cuartos').map(m=>m.id),
-        'Semifinal': BRACKET_LATER.filter(m=>m.round==='Semifinal').map(m=>m.id),
-        '3er Puesto': BRACKET_LATER.filter(m=>m.round==='3er Puesto').map(m=>m.id),
-        'FINAL 🏆': BRACKET_LATER.filter(m=>m.round==='FINAL 🏆').map(m=>m.id),
-    };
-
-    let h = '';
-    for (const round of rounds) {
-        const ids = roundMap[round];
-        if (!ids || !ids.length) continue;
-        h += `<div style="margin-bottom:20px"><div style="font-family:'Bebas Neue',cursive;font-size:1em;letter-spacing:2px;color:#f5c518;margin-bottom:10px;padding:6px 12px;background:#1a2540;border-radius:4px">${round}</div>`;
-        for (const id of ids) {
-            const match = allMatches.find(m=>m.id===id);
-            if (!match) continue;
-            const res = elimResults[id]||{};
-            const labelA = match.teamA_label||id;
-            const labelB = match.teamB_label||id;
-            const locked = res.locked ? true : false;
-            h += `<div style="display:grid;grid-template-columns:2fr 70px 16px 70px 2fr auto;gap:8px;align-items:center;margin-bottom:8px;font-size:0.88em">
-                <span style="color:${locked?'#888':'#e0e0e0'}">${flag(res.teamA||'')} ${res.teamA||labelA}</span>
-                <input type="number" id="elim_ghA_${id}" value="${res.ghA!==undefined?res.ghA:''}" placeholder="?" min="0"
-                    class="admin-inp" ${locked?'disabled':''}>
-                <span style="text-align:center;color:#555">-</span>
-                <input type="number" id="elim_ghB_${id}" value="${res.ghB!==undefined?res.ghB:''}" placeholder="?" min="0"
-                    class="admin-inp" ${locked?'disabled':''}>
-                <span style="color:${locked?'#888':'#e0e0e0'}">${res.teamB||labelB} ${flag(res.teamB||'')}</span>
-                <button onclick="toggleElimLock('${id}')"
-                    style="padding:4px 10px;background:${locked?'#2a0d0d':'#0d2a0d'};border:1px solid ${locked?'#f44336':'#4caf50'};border-radius:4px;color:${locked?'#f44336':'#4caf50'};cursor:pointer;font-size:0.8em;white-space:nowrap">
-                    ${locked?'🔒 Bloq':'🔓 Libre'}
-                </button>
-            </div>`;
-        }
-        h += `</div>`;
-    }
-    h += `<button class="btn-save" onclick="saveAdminElimResults()" style="margin-top:10px">💾 Guardar Eliminatorias</button>`;
-    document.getElementById('adminElimContainer').innerHTML = h;
-}
-
-function toggleElimLock(id) {
-    const results = getElimResults();
-    if (!results[id]) results[id] = {};
-    results[id].locked = !results[id].locked;
-    setElimResults(results);
-    renderAdminElimResults();
-}
-
-function saveAdminElimResults() {
-    const results = getElimResults();
-    const allIds = [...BRACKET_16.map(m=>m.id), ...BRACKET_LATER.map(m=>m.id)];
-    for (const id of allIds) {
-        if (!results[id]) results[id] = {};
-        if (results[id].locked) continue; // no cambiar si está bloqueado
-        const ghAEl = document.getElementById('elim_ghA_'+id);
-        const ghBEl = document.getElementById('elim_ghB_'+id);
-        if (!ghAEl || !ghBEl) continue;
-        const ghA = ghAEl.value.trim();
-        const ghB = ghBEl.value.trim();
-        results[id].ghA = ghA!==''?parseInt(ghA):undefined;
-        results[id].ghB = ghB!==''?parseInt(ghB):undefined;
-    }
-    setElimResults(results);
-    showToast('✅ Resultados eliminatorias guardados');
-    renderEliminatorias('real');
-}
-</script>
-<script>
-// ── USER ELIM PICKS ──
-const ROUNDS_CONFIG = [
-    {key:'r16',   label:'🏟️ Dieciseisavos', ids: ['P73','P74','P75','P76','P77','P78','P79','P80','P81','P82','P83','P84','P85','P86','P87','P88']},
-    {key:'r8',    label:'⚔️ Octavos',        ids: ['P89','P90','P91','P92','P93','P94','P95','P96']},
-    {key:'r4',    label:'🥊 Cuartos',         ids: ['P97','P98','P99','P100']},
-    {key:'semi',  label:'🔥 Semifinales',     ids: ['P101','P102']},
-    {key:'third', label:'🥉 Tercer Puesto',   ids: ['P103']},
-    {key:'final', label:'🏆 Final',           ids: ['P104']},
-];
-
-function getAllElimMatches() {
-    return [...BRACKET_16, ...BRACKET_LATER];
-}
-
+// ── USER ELIM PICKS (with score input) ──
 function renderUserElimPicks() {
     const cfg = getElimConfig();
     const picks = getUserElimPicks();
     const elimResults = getElimResults();
-    const allMatches = getAllElimMatches();
+    const users = getUsers();
+    const matchList = users[currentUser]?.matches||[];
 
     let h = `<div style="margin-bottom:14px;padding:8px 14px;background:#1a2540;border-radius:6px;font-size:0.82em;color:#888">
-        ✏️ <strong style="color:#f5c518">Predice los ganadores de cada ronda.</strong>
-        Solo puedes editar las rondas que el admin haya habilitado. Tus picks se guardan en la nube.
+        ✏️ <strong style="color:#f5c518">Predice los marcadores de eliminatorias.</strong>
+        Mismo sistema de puntos que fase de grupos. Solo rondas habilitadas por el admin.
     </div>`;
 
     let anyOpen = false;
-
     for (const round of ROUNDS_CONFIG) {
-        const isOpen = cfg[round.key] === true;
-        if (isOpen) anyOpen = true;
-
+        const isOpen = cfg[round.key]===true;
+        if (isOpen) anyOpen=true;
         h += `<div style="margin-bottom:20px">
-            <div style="font-family:'Bebas Neue',cursive;font-size:1em;letter-spacing:2px;padding:8px 12px;border-radius:6px;margin-bottom:10px;
-                background:${isOpen?'#0d2a0d':'#2a0d0d'};color:${isOpen?'#4caf50':'#f44336'};
-                border:1px solid ${isOpen?'#2a5a2a':'#5a2a2a'};display:flex;justify-content:space-between;align-items:center">
+            <div style="font-family:'Bebas Neue',cursive;font-size:1em;letter-spacing:2px;padding:8px 14px;
+                border-radius:6px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;
+                background:${isOpen?'#0d2a0d':'#1a2540'};color:${isOpen?'#4caf50':'#666'};
+                border-left:3px solid ${isOpen?'#4caf50':'#333'}">
                 <span>${round.label}</span>
                 <span style="font-size:0.75em">${isOpen?'🔓 ABIERTO':'🔒 BLOQUEADO'}</span>
             </div>`;
-
         h += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px">`;
 
         for (const id of round.ids) {
-            const match = allMatches.find(m=>m.id===id);
+            const allM = getAllElimMatches();
+            const match = allM.find(m=>m.id===id);
             if (!match) continue;
-            const res = elimResults[id] || {};
-            // Resolve team names
-            let teamAName, teamBName;
-            if (match.teamA && typeof match.teamA === 'object') {
-                // 16avos - from standings
-                const users = getUsers();
-                const matchList = users[currentUser]?.matches || [];
-                const standings = {};
-                for (const g in GROUPS) standings[g] = calcStandings(g, matchList);
-                const best3rds = getBest3rds(matchList);
-                teamAName = resolveTeam(match.teamA, standings, best3rds);
-                teamBName = resolveTeam(match.teamB, standings, best3rds);
-            } else {
-                teamAName = resolveElimTeam(match.teamA, elimResults) || match.teamA;
-                teamBName = resolveElimTeam(match.teamB, elimResults) || match.teamB;
-            }
+            const {teamA,teamB} = getMatchTeams(match, elimResults, matchList);
+            const pick = picks[id]||{};
+            const pickGhA = pick.ghA!==undefined?pick.ghA:'';
+            const pickGhB = pick.ghB!==undefined?pick.ghB:'';
+            const res = elimResults[id]||{};
+            const realGhA = res.ghA!==undefined&&res.ghA!==''?res.ghA:null;
+            const realGhB = res.ghB!==undefined&&res.ghB!==''?res.ghB:null;
+            const hasReal = realGhA!==null&&realGhB!==null;
+            const pts = hasReal&&pickGhA!==''&&pickGhB!=='' ? calcElimPoints(realGhA,realGhB,pickGhA,pickGhB) : null;
 
-            const userPick = picks[id] || '';
-            const labelA = match.teamA?.group ? `${match.teamA.type==='1st'?'1º':'2º'} Grp ${match.teamA.group}` : (match.teamA?.groups ? `3º (${match.teamA.groups})` : match.teamA);
-            const labelB = match.teamB?.group ? `${match.teamB.type==='1st'?'1º':'2º'} Grp ${match.teamB.group}` : (match.teamB?.groups ? `3º (${match.teamB.groups})` : match.teamB);
+            const labelA = match.teamA?.group?`${match.teamA.type==='1st'?'1º':'2º'} Grp ${match.teamA.group}`:(match.teamA?.groups?`3º (${match.teamA.groups})`:match.teamA);
+            const labelB = match.teamB?.group?`${match.teamB.type==='1st'?'1º':'2º'} Grp ${match.teamB.group}`:(match.teamB?.groups?`3º (${match.teamB.groups})`:match.teamB);
 
-            h += `<div style="background:#0f1428;border-radius:8px;padding:12px;border-left:3px solid ${isOpen?'#1e3a1e':'#1e2a3a'}">
-                <div style="font-size:0.72em;color:#f5c518;font-weight:bold;margin-bottom:8px">${id}</div>
-                <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:4px;align-items:center;margin-bottom:10px">
-                    <div style="text-align:right;font-size:0.85em">
-                        <div style="color:#555;font-size:0.7em">${labelA}</div>
-                        <strong style="color:${teamAName==='?'?'#555':'#fff'}">${flag(teamAName)} ${teamAName}</strong>
+            h += `<div style="background:#0f1428;border-radius:8px;padding:12px 14px;
+                border-left:3px solid ${isOpen?'#1e3a1e':'#1e2a3a'};">
+                <div style="display:flex;justify-content:space-between;font-size:0.72em;margin-bottom:8px">
+                    <span style="color:#f5c518;font-weight:bold">${id}</span>
+                    ${pts!==null?`<span style="color:#f5c518;font-weight:bold">+${pts} pts</span>`:''}
+                </div>
+                <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;margin-bottom:10px">
+                    <div style="text-align:right">
+                        <div style="font-size:0.7em;color:#555">${labelA}</div>
+                        <div style="font-weight:bold;font-size:0.88em;color:${teamA==='?'?'#555':'#fff'}">${flag(teamA)} ${teamA}</div>
                     </div>
-                    <div style="color:#555;text-align:center;font-size:0.8em">vs</div>
-                    <div style="text-align:left;font-size:0.85em">
-                        <div style="color:#555;font-size:0.7em">${labelB}</div>
-                        <strong style="color:${teamBName==='?'?'#555':'#fff'}">${teamBName} ${flag(teamBName)}</strong>
+                    <div style="text-align:center">
+                        ${isOpen?`
+                        <div style="display:flex;align-items:center;gap:4px">
+                            <input type="number" id="upick_ghA_${id}" value="${pickGhA}" placeholder="?" min="0"
+                                style="width:42px;padding:5px 2px;background:#161b2e;border:1px solid #2a3a5a;border-radius:5px;
+                                color:#f5c518;text-align:center;font-size:1.1em;font-weight:bold;font-family:'Bebas Neue',cursive">
+                            <span style="color:#555">-</span>
+                            <input type="number" id="upick_ghB_${id}" value="${pickGhB}" placeholder="?" min="0"
+                                style="width:42px;padding:5px 2px;background:#161b2e;border:1px solid #2a3a5a;border-radius:5px;
+                                color:#f5c518;text-align:center;font-size:1.1em;font-weight:bold;font-family:'Bebas Neue',cursive">
+                        </div>`
+                        :`<div style="font-family:'Bebas Neue',cursive;font-size:1.1em;color:${pickGhA!==''?'#aaa':'#333'}">
+                            ${pickGhA!==''?`${pickGhA}-${pickGhB}`:'?-?'}
+                        </div>`}
+                    </div>
+                    <div style="text-align:left">
+                        <div style="font-size:0.7em;color:#555">${labelB}</div>
+                        <div style="font-weight:bold;font-size:0.88em;color:${teamB==='?'?'#555':'#fff'}">${teamB} ${flag(teamB)}</div>
                     </div>
                 </div>
-                ${isOpen ? `
-                <div style="font-size:0.8em;color:#888;margin-bottom:6px">¿Quién gana?</div>
-                <div style="display:flex;gap:6px;flex-wrap:wrap">
-                    <button onclick="setUserPick('${id}','${teamAName}')"
-                        style="flex:1;padding:6px 8px;background:${userPick===teamAName?'#f5c518':'#161b2e'};
-                        color:${userPick===teamAName?'#0d1117':'#888'};border:1px solid ${userPick===teamAName?'#f5c518':'#2a3a5a'};
-                        border-radius:6px;cursor:pointer;font-size:0.82em;font-weight:bold;text-align:center"
-                        id="pick_${id}_A">
-                        ${flag(teamAName)} ${teamAName==='?'?'Equipo A':teamAName}
-                    </button>
-                    <button onclick="setUserPick('${id}','${teamBName}')"
-                        style="flex:1;padding:6px 8px;background:${userPick===teamBName?'#f5c518':'#161b2e'};
-                        color:${userPick===teamBName?'#0d1117':'#888'};border:1px solid ${userPick===teamBName?'#f5c518':'#2a3a5a'};
-                        border-radius:6px;cursor:pointer;font-size:0.82em;font-weight:bold;text-align:center"
-                        id="pick_${id}_B">
-                        ${flag(teamBName)} ${teamBName==='?'?'Equipo B':teamBName}
-                    </button>
-                </div>
-                ${userPick ? `<div style="margin-top:6px;font-size:0.75em;color:#4caf50;text-align:center">✅ Tu pick: ${flag(userPick)} ${userPick}</div>` : ''}
-                ` : `
-                <div style="text-align:center;color:#555;font-size:0.8em;margin-top:4px">
-                    ${userPick ? `Tu pick: ${flag(userPick)} <strong style="color:#aaa">${userPick}</strong>` : '🔒 No disponible aún'}
-                </div>`}
+                ${hasReal?`<div style="text-align:center;font-size:0.75em;color:#888">Real: <strong style="color:#f5c518">${realGhA}-${realGhB}</strong></div>`:''}
             </div>`;
         }
         h += '</div></div>';
     }
 
     if (!anyOpen) {
-        h += `<div style="text-align:center;padding:30px;color:#555;font-size:0.95em">
-            🔒 El admin aún no ha habilitado ninguna ronda para picks.<br>
+        h += `<div style="text-align:center;padding:40px;color:#555">
+            🔒 El admin aún no ha habilitado ninguna ronda.<br>
             <span style="font-size:0.85em;color:#444">Vuelve cuando empiece la fase eliminatoria.</span>
+        </div>`;
+    } else {
+        h += `<div style="position:sticky;bottom:80px;text-align:center;margin-top:16px">
+            <button class="btn-save" onclick="saveUserElimPicks()" style="padding:12px 40px">💾 Guardar picks eliminatorias</button>
         </div>`;
     }
 
     document.getElementById('elimContainer').innerHTML = h;
 }
 
-function setUserPick(matchId, team) {
+function saveUserElimPicks() {
+    const cfg = getElimConfig();
     const picks = getUserElimPicks();
-    picks[matchId] = team;
+    for (const round of ROUNDS_CONFIG) {
+        if (!cfg[round.key]) continue;
+        for (const id of round.ids) {
+            const ghAEl = document.getElementById('upick_ghA_'+id);
+            const ghBEl = document.getElementById('upick_ghB_'+id);
+            if (!ghAEl||!ghBEl) continue;
+            const ghA=ghAEl.value.trim(), ghB=ghBEl.value.trim();
+            if (ghA!==''&&ghB!=='') picks[id]={ghA:parseInt(ghA),ghB:parseInt(ghB)};
+        }
+    }
     setUserElimPicks(picks);
-    showToast('✅ Pick guardado: ' + team);
+    showToast('✅ Picks de eliminatorias guardados');
     renderUserElimPicks();
 }
 
-// ── ADMIN: ELIM CONFIG (habilitar rondas para user picks) ──
-function renderAdminElimConfig() {
+// ── ADMIN: ELIM RESULTS (by round) ──
+function renderAdminElimResults() {
+    const elimResults = getElimResults();
     const cfg = getElimConfig();
-    let h = `<div style="margin-bottom:14px;font-size:0.85em;color:#888">
-        Habilita las rondas para que los usuarios puedan ingresar sus predicciones de eliminatorias.
-        Por defecto todo está bloqueado.
-    </div>`;
+    let h = '';
+    const allM = getAllElimMatches();
 
     for (const round of ROUNDS_CONFIG) {
-        const isOpen = cfg[round.key] === true;
+        const isOpen = cfg[round.key]===true;
+        h += `<div style="margin-bottom:20px">
+            <div style="font-family:'Bebas Neue',cursive;font-size:1em;letter-spacing:2px;padding:8px 14px;
+                border-radius:6px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;
+                background:${isOpen?'#0d2a0d':'#1a2540'};color:${isOpen?'#4caf50':'#888'};
+                border-left:3px solid ${isOpen?'#4caf50':'#333'}">
+                <span>${round.label}</span>
+                <span style="font-size:0.75em">${isOpen?'🔓 ABIERTO':'🔒 CERRADO'}</span>
+            </div>`;
+
+        if (!isOpen) {
+            h += `<p style="color:#555;font-size:0.85em;padding:8px 14px">Ronda cerrada — abre desde "Habilitar rondas" para editar resultados.</p>`;
+        } else {
+            for (const id of round.ids) {
+                const match = allM.find(m=>m.id===id);
+                if (!match) continue;
+                const res = elimResults[id]||{};
+                const ghA = res.ghA!==undefined?res.ghA:'';
+                const ghB = res.ghB!==undefined?res.ghB:'';
+                const labelA = match.teamA?.group?`${match.teamA.type==='1st'?'1º':'2º'} Grp ${match.teamA.group}`:(match.teamA?.groups?`3º (${match.teamA.groups})`:match.teamA);
+                const labelB = match.teamB?.group?`${match.teamB.type==='1st'?'1º':'2º'} Grp ${match.teamB.group}`:(match.teamB?.groups?`3º (${match.teamB.groups})`:match.teamB);
+                const tA = res.teamA||labelA;
+                const tB = res.teamB||labelB;
+                h += `<div style="display:grid;grid-template-columns:2fr 70px 16px 70px 2fr;gap:8px;align-items:center;margin-bottom:10px;font-size:0.9em;padding:0 4px">
+                    <span>${flag(tA)||''} <strong>${tA}</strong></span>
+                    <input type="number" id="elim_ghA_${id}" value="${ghA}" placeholder="?" min="0" class="admin-inp">
+                    <span style="text-align:center;color:#555">-</span>
+                    <input type="number" id="elim_ghB_${id}" value="${ghB}" placeholder="?" min="0" class="admin-inp">
+                    <span><strong>${tB}</strong> ${flag(tB)||''}</span>
+                </div>`;
+            }
+        }
+        h += '</div>';
+    }
+    h += `<button class="btn-save" onclick="saveAdminElimResults()">💾 Guardar resultados eliminatorias</button>`;
+    document.getElementById('adminElimContainer').innerHTML = h;
+}
+
+function saveAdminElimResults() {
+    const results = getElimResults();
+    const cfg = getElimConfig();
+    const allM = getAllElimMatches();
+    for (const round of ROUNDS_CONFIG) {
+        if (!cfg[round.key]) continue;
+        for (const id of round.ids) {
+            const ghAEl = document.getElementById('elim_ghA_'+id);
+            const ghBEl = document.getElementById('elim_ghB_'+id);
+            if (!ghAEl||!ghBEl) continue;
+            if (!results[id]) results[id]={};
+            const ghA=ghAEl.value.trim(), ghB=ghBEl.value.trim();
+            results[id].ghA = ghA!==''?parseInt(ghA):undefined;
+            results[id].ghB = ghB!==''?parseInt(ghB):undefined;
+            // Store team names for resolution
+            const match = allM.find(m=>m.id===id);
+            if (match&&match.teamA&&typeof match.teamA==='object') {
+                // Will be resolved at render time
+            }
+        }
+    }
+    setElimResults(results);
+    showToast('✅ Resultados eliminatorias guardados');
+    renderAdminElimResults();
+}
+
+// ── ADMIN: ELIM CONFIG ──
+function renderAdminElimConfig() {
+    const cfg = getElimConfig();
+    let h = `<p style="color:#888;font-size:0.85em;margin-bottom:16px">
+        Abre cada ronda para que los usuarios puedan ingresar sus predicciones de marcador,
+        y para que tú puedas cargar los resultados reales.
+    </p>`;
+    for (const round of ROUNDS_CONFIG) {
+        const isOpen = cfg[round.key]===true;
         h += `<div style="display:flex;justify-content:space-between;align-items:center;
-            padding:10px 14px;background:#161b2e;border-radius:6px;margin-bottom:8px;
+            padding:12px 16px;background:#161b2e;border-radius:6px;margin-bottom:8px;
             border-left:3px solid ${isOpen?'#4caf50':'#f44336'}">
-            <span style="font-weight:bold">${round.label}</span>
+            <span style="font-weight:bold;font-size:1em">${round.label}</span>
             <button onclick="toggleElimRound('${round.key}')"
-                style="padding:6px 16px;background:${isOpen?'#0d2a0d':'#2a0d0d'};
+                style="padding:6px 18px;background:${isOpen?'#0d2a0d':'#2a0d0d'};
                 border:1px solid ${isOpen?'#4caf50':'#f44336'};border-radius:6px;
-                color:${isOpen?'#4caf50':'#f44336'};cursor:pointer;font-weight:bold;font-size:0.85em">
-                ${isOpen?'🔓 ABIERTO — clic para cerrar':'🔒 CERRADO — clic para abrir'}
+                color:${isOpen?'#4caf50':'#f44336'};cursor:pointer;font-weight:bold;font-size:0.85em;white-space:nowrap">
+                ${isOpen?'🔓 ABIERTO — cerrar':'🔒 CERRADO — abrir'}
             </button>
         </div>`;
     }
@@ -1945,8 +1897,10 @@ function toggleElimRound(key) {
     cfg[key] = !cfg[key];
     setElimConfig(cfg);
     renderAdminElimConfig();
+    renderAdminElimResults();
     showToast('✅ Ronda ' + (cfg[key]?'abierta':'cerrada'));
 }
 </script>
+
 </body>
 </html>
