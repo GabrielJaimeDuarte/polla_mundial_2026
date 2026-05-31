@@ -1450,8 +1450,45 @@ function saveEmailConfig() {
 </script>
 <script>
 // ══════════════════════════════════════════
-// ELIMINATORIAS
+// ELIMINATORIAS — BRACKETS
 // ══════════════════════════════════════════
+const BRACKET_16 = [
+    {id:'P73',date:'Jun 28',teamA:{type:'2nd',group:'A'},teamB:{type:'2nd',group:'B'},venue:'Los Ángeles'},
+    {id:'P74',date:'Jun 29',teamA:{type:'1st',group:'E'},teamB:{type:'3rd',groups:'ABCDF'},venue:'Boston'},
+    {id:'P75',date:'Jun 29',teamA:{type:'1st',group:'F'},teamB:{type:'2nd',group:'C'},venue:'Monterrey'},
+    {id:'P76',date:'Jun 29',teamA:{type:'1st',group:'E'},teamB:{type:'2nd',group:'F'},venue:'Houston'},
+    {id:'P77',date:'Jun 30',teamA:{type:'1st',group:'I'},teamB:{type:'3rd',groups:'CDFGH'},venue:'Nueva York'},
+    {id:'P78',date:'Jun 30',teamA:{type:'2nd',group:'E'},teamB:{type:'2nd',group:'I'},venue:'Dallas'},
+    {id:'P79',date:'Jun 30',teamA:{type:'1st',group:'A'},teamB:{type:'3rd',groups:'CEFHI'},venue:'Cd. México'},
+    {id:'P80',date:'Jul 1', teamA:{type:'1st',group:'L'},teamB:{type:'3rd',groups:'EHIJK'},venue:'Atlanta'},
+    {id:'P81',date:'Jul 1', teamA:{type:'1st',group:'D'},teamB:{type:'3rd',groups:'BEFIJ'},venue:'San Francisco'},
+    {id:'P82',date:'Jul 1', teamA:{type:'1st',group:'G'},teamB:{type:'3rd',groups:'AEHIJ'},venue:'Seattle'},
+    {id:'P83',date:'Jul 2', teamA:{type:'2nd',group:'K'},teamB:{type:'2nd',group:'L'},venue:'Toronto'},
+    {id:'P84',date:'Jul 2', teamA:{type:'1st',group:'H'},teamB:{type:'2nd',group:'J'},venue:'Los Ángeles'},
+    {id:'P85',date:'Jul 2', teamA:{type:'1st',group:'B'},teamB:{type:'3rd',groups:'EFGIJ'},venue:'Vancouver'},
+    {id:'P86',date:'Jul 3', teamA:{type:'1st',group:'J'},teamB:{type:'2nd',group:'H'},venue:'Miami'},
+    {id:'P87',date:'Jul 3', teamA:{type:'1st',group:'K'},teamB:{type:'3rd',groups:'DEJIL'},venue:'Kansas City'},
+    {id:'P88',date:'Jul 3', teamA:{type:'2nd',group:'D'},teamB:{type:'2nd',group:'G'},venue:'Dallas'},
+];
+
+const BRACKET_LATER = [
+    {id:'P89', round:'Octavos',    date:'Jul 4',  teamA:'Gan. P74', teamB:'Gan. P77', venue:'Filadelfia'},
+    {id:'P90', round:'Octavos',    date:'Jul 4',  teamA:'Gan. P73', teamB:'Gan. P75', venue:'Houston'},
+    {id:'P91', round:'Octavos',    date:'Jul 5',  teamA:'Gan. P76', teamB:'Gan. P78', venue:'Nueva York'},
+    {id:'P92', round:'Octavos',    date:'Jul 5',  teamA:'Gan. P79', teamB:'Gan. P80', venue:'Cd. México'},
+    {id:'P93', round:'Octavos',    date:'Jul 6',  teamA:'Gan. P83', teamB:'Gan. P84', venue:'Dallas'},
+    {id:'P94', round:'Octavos',    date:'Jul 6',  teamA:'Gan. P81', teamB:'Gan. P82', venue:'Seattle'},
+    {id:'P95', round:'Octavos',    date:'Jul 7',  teamA:'Gan. P86', teamB:'Gan. P88', venue:'Atlanta'},
+    {id:'P96', round:'Octavos',    date:'Jul 7',  teamA:'Gan. P85', teamB:'Gan. P87', venue:'Vancouver'},
+    {id:'P97', round:'Cuartos',    date:'Jul 9',  teamA:'Gan. P89', teamB:'Gan. P90', venue:'Boston'},
+    {id:'P98', round:'Cuartos',    date:'Jul 10', teamA:'Gan. P93', teamB:'Gan. P94', venue:'Los Ángeles'},
+    {id:'P99', round:'Cuartos',    date:'Jul 11', teamA:'Gan. P91', teamB:'Gan. P92', venue:'Miami'},
+    {id:'P100',round:'Cuartos',    date:'Jul 11', teamA:'Gan. P95', teamB:'Gan. P96', venue:'Kansas City'},
+    {id:'P101',round:'Semifinal',  date:'Jul 14', teamA:'Gan. P97', teamB:'Gan. P98', venue:'Dallas'},
+    {id:'P102',round:'Semifinal',  date:'Jul 15', teamA:'Gan. P99', teamB:'Gan. P100',venue:'Atlanta'},
+    {id:'P103',round:'3er Puesto', date:'Jul 18', teamA:'Per. P101',teamB:'Per. P102',venue:'Miami'},
+    {id:'P104',round:'FINAL 🏆',   date:'Jul 19', teamA:'Gan. P101',teamB:'Gan. P102',venue:'Nueva York'},
+];
 
 // All matches flat list
 function getAllElimMatches() {
