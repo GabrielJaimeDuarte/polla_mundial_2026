@@ -1364,6 +1364,7 @@ function renderRanking() {
     const ranking = [];
 
     for (const u in users) {
+        if (u === ADMIN_USER) continue; // admin no participa
         // Phase groups points
         const um = users[u].matches || [];
         let pts = 0;
@@ -1467,16 +1468,18 @@ function addUser() {
     const username = document.getElementById('newUsername').value.trim();
     const password = document.getElementById('newPassword').value.trim();
     if (!username||!password) { alert('Ingresa usuario y contraseña'); return; }
-    if (username===ADMIN_USER) { alert('Nombre reservado'); return; }
+    if (username===ADMIN_USER) { alert('❌ Ese nombre está reservado'); return; }
     const users = getUsers();
-    users[username] = users[username] || {matches:[]};
-    users[username].pass = password;
-    users[username].mustChange = true; // force password change on first login
+    if (users[username]) {
+        alert('❌ El usuario "' + username + '" ya existe. Si quieres cambiarle la contraseña usa el botón ✏️ Pass.');
+        return;
+    }
+    users[username] = {pass:password, matches:[], mustChange:true};
     setUsers(users);
     document.getElementById('newUsername').value='';
     document.getElementById('newPassword').value='';
     renderUserList();
-    showToast('✅ Usuario "'+username+'" guardado');
+    showToast('✅ Usuario "'+username+'" creado correctamente');
 }
 
 function changePassword(username) {
