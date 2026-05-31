@@ -488,6 +488,7 @@
         <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
             <button onclick="showRealView('resultados')" id="btnResultados" class="toggle-btn toggle-active">📋 Resultados</button>
             <button onclick="showRealView('posiciones')" id="btnPosiciones" class="toggle-btn">📊 Posiciones</button>
+            <button onclick="showRealView('best3rds')" id="btnBest3rds" class="toggle-btn">🥉 Mejores 3eros</button>
         </div>
         <div id="realResultsContainer"></div>
     </div>
@@ -1249,23 +1250,52 @@ function renderRealResults() {
     }
     html += '</div>';
 
+    // Best 3rds table (real)
+    html += '<div id="viewBest3rds" style="display:none">';
+    html += '<div style="margin-bottom:16px"><table class="standings" style="max-width:600px"><thead><tr>';
+    html += '<th style="text-align:left">GRUPO</th><th style="text-align:left">3ER LUGAR</th><th>PJ</th><th>PTS</th><th>GF</th><th>GC</th><th>DG</th>';
+    html += '</tr></thead><tbody>';
+    const thirds = [];
+    for (const g in GROUPS) {
+        const realM = real.map(r=>({id:r.id,gh:r.gh,ga:r.ga}));
+        const sorted = calcStandings(g, realM);
+        if (sorted[2]) {
+            const [team, s] = sorted[2];
+            const diff = s.gf - s.ga;
+            const dc = diff>0?'diff-pos':diff<0?'diff-neg':'diff-zero';
+            thirds.push({g, team, s, diff, dc});
+        }
+    }
+    // Sort by pts, DG, GF
+    thirds.sort((a,b)=>b.s.pts-a.s.pts||(b.diff-a.diff)||(b.s.gf-a.s.gf));
+    thirds.forEach((t,i)=>{
+        const medal = i<8 ? `<span style="color:#f5c518;font-size:0.75em">✅ CLASIFICA</span>` : '';
+        html += `<tr style="border-left:3px solid ${i<8?'#ff9800':'#333'}">
+            <td>Grupo ${t.g}</td>
+            <td><div class="team-cell">${flag(t.team)}<span>${t.team}</span></div> ${medal}</td>
+            <td>${t.s.p}</td><td class="pts-bold">${t.s.pts}</td>
+            <td>${t.s.gf}</td><td>${t.s.ga}</td>
+            <td class="${t.dc}">${t.diff>0?'+':''}${t.diff}</td>
+        </tr>`;
+    });
+    html += '</tbody></table></div>';
+    html += '</div>';
+
     document.getElementById('realResultsContainer').innerHTML = html;
 }
 
 function showRealView(view) {
     document.getElementById('viewResultados').style.display = view==='resultados' ? 'grid' : 'none';
     document.getElementById('viewPosiciones').style.display = view==='posiciones' ? 'grid' : 'none';
-    const bR = document.getElementById('btnResultados');
-    const bP = document.getElementById('btnPosiciones');
-    [bR, bP].forEach(b => {
-        b.style.background = '#1a2540';
-        b.style.color = '#888';
-        b.style.border = '1px solid #2a3a5a';
+    document.getElementById('viewBest3rds').style.display = view==='best3rds' ? 'block' : 'none';
+    ['btnResultados','btnPosiciones','btnBest3rds'].forEach(id => {
+        const b = document.getElementById(id);
+        if (!b) return;
+        b.className = 'toggle-btn';
     });
-    const active = view==='resultados' ? bR : bP;
-    active.style.background = '#f5c518';
-    active.style.color = '#0d1117';
-    active.style.border = 'none';
+    const activeId = view==='resultados'?'btnResultados':view==='posiciones'?'btnPosiciones':'btnBest3rds';
+    const active = document.getElementById(activeId);
+    if (active) active.className = 'toggle-btn toggle-active';
 }
 
 function renderRanking() {
