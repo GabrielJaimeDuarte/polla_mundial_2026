@@ -497,7 +497,8 @@
         <p style="color:#666;font-size:0.85em;margin-bottom:8px">Cruces calculados según tus pronósticos. Se actualiza automáticamente.</p>
         <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
             <button onclick="showElimView('miPolla')" id="btnElimMi" class="toggle-btn toggle-active">⚽ Según mi pronóstico</button>
-            <button onclick="showElimView('real')" id="btnElimReal" class="toggle-btn">📋 Según resultados reales</button>
+            <button onclick="showElimView('real')" id="btnElimReal" class="toggle-btn">📋 Resultados reales</button>
+            <button onclick="showElimView('userPick')" id="btnElimUser" class="toggle-btn">✏️ Mi predicción eliminatorias</button>
         </div>
         <div id="elimContainer"></div>
     </div>
@@ -607,8 +608,13 @@
 
         <div class="admin-card" style="margin-top:20px">
             <h3>🏟️ Resultados Eliminatorias</h3>
-            <p style="color:#888;font-size:0.85em;margin-bottom:16px">Cada partido tiene un candado 🔒/🔓 — libéralo para poder ingresar resultados. Bloqueado = no editable.</p>
+            <p style="color:#888;font-size:0.85em;margin-bottom:16px">Cada partido tiene un candado 🔒/🔓 — libéralo para poder ingresar resultados.</p>
             <div id="adminElimContainer"></div>
+        </div>
+
+        <div class="admin-card" style="margin-top:20px">
+            <h3>🔓 Habilitar rondas para picks de usuarios</h3>
+            <div id="adminElimConfigContainer"></div>
         </div>
         <div class="email-config" id="emailConfigPanel" style="display:none">
             <h3 style="color:#f5c518;margin-bottom:14px">Configurar EmailJS</h3>
@@ -651,7 +657,9 @@ function loadAllFromFirebase(callback) {
         db.ref('users').once('value').then(s => { if(s.val()) localStorage.setItem('wc2026_users', JSON.stringify(s.val())); }),
         db.ref('real').once('value').then(s => { if(s.val()) localStorage.setItem('wc2026_real', JSON.stringify(s.val())); }),
         db.ref('ejs').once('value').then(s => { if(s.val()) localStorage.setItem('wc2026_ejs', JSON.stringify(s.val())); }),
-        db.ref('elim').once('value').then(s => { if(s.val()) localStorage.setItem('wc2026_elim', JSON.stringify(s.val())); })
+        db.ref('elim').once('value').then(s => { if(s.val()) localStorage.setItem('wc2026_elim', JSON.stringify(s.val())); }),
+        db.ref('elimcfg').once('value').then(s => { if(s.val()) localStorage.setItem('wc2026_elimcfg', JSON.stringify(s.val())); }),
+        db.ref('userpicks').once('value').then(s => { if(s.val()) localStorage.setItem('wc2026_userpicks', JSON.stringify(s.val())); })
     ]).then(() => callback()).catch(() => callback());
 }
 
@@ -916,7 +924,7 @@ function init() {
     renderRealResults();
     renderRanking();
     renderEliminatorias('miPolla');
-    if (isAdmin) { renderAllForecasts(); renderAdminRealResults(); renderAdminElimResults(); renderUserList(); }
+    if (isAdmin) { renderAllForecasts(); renderAdminRealResults(); renderAdminElimResults(); renderAdminElimConfig(); renderUserList(); }
 }
 
 function showSubTab(subId, btn) {
@@ -1522,11 +1530,36 @@ function setElimResults(r) {
     localStorage.setItem('wc2026_elim', JSON.stringify(r));
     if (db) db.ref('elim').set(r).catch(()=>{});
 }
+// Config de qué rondas están abiertas para que usuarios pongan picks
+function getElimConfig() {
+    try { return JSON.parse(localStorage.getItem('wc2026_elimcfg')||'{}'); } catch { return {}; }
+}
+function setElimConfig(c) {
+    localStorage.setItem('wc2026_elimcfg', JSON.stringify(c));
+    if (db) db.ref('elimcfg').set(c).catch(()=>{});
+}
+// Picks de usuarios en eliminatorias
+function getUserElimPicks() {
+    try {
+        const all = JSON.parse(localStorage.getItem('wc2026_userpicks')||'{}');
+        return all[currentUser] || {};
+    } catch { return {}; }
+}
+function setUserElimPicks(picks) {
+    try {
+        const all = JSON.parse(localStorage.getItem('wc2026_userpicks')||'{}');
+        all[currentUser] = picks;
+        localStorage.setItem('wc2026_userpicks', JSON.stringify(all));
+        if (db) db.ref('userpicks').set(all).catch(()=>{});
+    } catch(e) { console.error(e); }
+}
 
 function showElimView(mode) {
     document.getElementById('btnElimMi').className = 'toggle-btn'+(mode==='miPolla'?' toggle-active':'');
     document.getElementById('btnElimReal').className = 'toggle-btn'+(mode==='real'?' toggle-active':'');
-    renderEliminatorias(mode);
+    document.getElementById('btnElimUser').className = 'toggle-btn'+(mode==='userPick'?' toggle-active':'');
+    if (mode==='userPick') renderUserElimPicks();
+    else renderEliminatorias(mode);
 }
 
 function matchCard16(match, teamA, teamB, elimResults) {
@@ -1755,6 +1788,164 @@ function saveAdminElimResults() {
     setElimResults(results);
     showToast('✅ Resultados eliminatorias guardados');
     renderEliminatorias('real');
+}
+</script>
+<script>
+// ── USER ELIM PICKS ──
+const ROUNDS_CONFIG = [
+    {key:'r16',   label:'🏟️ Dieciseisavos', ids: ['P73','P74','P75','P76','P77','P78','P79','P80','P81','P82','P83','P84','P85','P86','P87','P88']},
+    {key:'r8',    label:'⚔️ Octavos',        ids: ['P89','P90','P91','P92','P93','P94','P95','P96']},
+    {key:'r4',    label:'🥊 Cuartos',         ids: ['P97','P98','P99','P100']},
+    {key:'semi',  label:'🔥 Semifinales',     ids: ['P101','P102']},
+    {key:'third', label:'🥉 Tercer Puesto',   ids: ['P103']},
+    {key:'final', label:'🏆 Final',           ids: ['P104']},
+];
+
+function getAllElimMatches() {
+    return [...BRACKET_16, ...BRACKET_LATER];
+}
+
+function renderUserElimPicks() {
+    const cfg = getElimConfig();
+    const picks = getUserElimPicks();
+    const elimResults = getElimResults();
+    const allMatches = getAllElimMatches();
+
+    let h = `<div style="margin-bottom:14px;padding:8px 14px;background:#1a2540;border-radius:6px;font-size:0.82em;color:#888">
+        ✏️ <strong style="color:#f5c518">Predice los ganadores de cada ronda.</strong>
+        Solo puedes editar las rondas que el admin haya habilitado. Tus picks se guardan en la nube.
+    </div>`;
+
+    let anyOpen = false;
+
+    for (const round of ROUNDS_CONFIG) {
+        const isOpen = cfg[round.key] === true;
+        if (isOpen) anyOpen = true;
+
+        h += `<div style="margin-bottom:20px">
+            <div style="font-family:'Bebas Neue',cursive;font-size:1em;letter-spacing:2px;padding:8px 12px;border-radius:6px;margin-bottom:10px;
+                background:${isOpen?'#0d2a0d':'#2a0d0d'};color:${isOpen?'#4caf50':'#f44336'};
+                border:1px solid ${isOpen?'#2a5a2a':'#5a2a2a'};display:flex;justify-content:space-between;align-items:center">
+                <span>${round.label}</span>
+                <span style="font-size:0.75em">${isOpen?'🔓 ABIERTO':'🔒 BLOQUEADO'}</span>
+            </div>`;
+
+        h += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px">`;
+
+        for (const id of round.ids) {
+            const match = allMatches.find(m=>m.id===id);
+            if (!match) continue;
+            const res = elimResults[id] || {};
+            // Resolve team names
+            let teamAName, teamBName;
+            if (match.teamA && typeof match.teamA === 'object') {
+                // 16avos - from standings
+                const users = getUsers();
+                const matchList = users[currentUser]?.matches || [];
+                const standings = {};
+                for (const g in GROUPS) standings[g] = calcStandings(g, matchList);
+                const best3rds = getBest3rds(matchList);
+                teamAName = resolveTeam(match.teamA, standings, best3rds);
+                teamBName = resolveTeam(match.teamB, standings, best3rds);
+            } else {
+                teamAName = resolveElimTeam(match.teamA, elimResults) || match.teamA;
+                teamBName = resolveElimTeam(match.teamB, elimResults) || match.teamB;
+            }
+
+            const userPick = picks[id] || '';
+            const labelA = match.teamA?.group ? `${match.teamA.type==='1st'?'1º':'2º'} Grp ${match.teamA.group}` : (match.teamA?.groups ? `3º (${match.teamA.groups})` : match.teamA);
+            const labelB = match.teamB?.group ? `${match.teamB.type==='1st'?'1º':'2º'} Grp ${match.teamB.group}` : (match.teamB?.groups ? `3º (${match.teamB.groups})` : match.teamB);
+
+            h += `<div style="background:#0f1428;border-radius:8px;padding:12px;border-left:3px solid ${isOpen?'#1e3a1e':'#1e2a3a'}">
+                <div style="font-size:0.72em;color:#f5c518;font-weight:bold;margin-bottom:8px">${id}</div>
+                <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:4px;align-items:center;margin-bottom:10px">
+                    <div style="text-align:right;font-size:0.85em">
+                        <div style="color:#555;font-size:0.7em">${labelA}</div>
+                        <strong style="color:${teamAName==='?'?'#555':'#fff'}">${flag(teamAName)} ${teamAName}</strong>
+                    </div>
+                    <div style="color:#555;text-align:center;font-size:0.8em">vs</div>
+                    <div style="text-align:left;font-size:0.85em">
+                        <div style="color:#555;font-size:0.7em">${labelB}</div>
+                        <strong style="color:${teamBName==='?'?'#555':'#fff'}">${teamBName} ${flag(teamBName)}</strong>
+                    </div>
+                </div>
+                ${isOpen ? `
+                <div style="font-size:0.8em;color:#888;margin-bottom:6px">¿Quién gana?</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                    <button onclick="setUserPick('${id}','${teamAName}')"
+                        style="flex:1;padding:6px 8px;background:${userPick===teamAName?'#f5c518':'#161b2e'};
+                        color:${userPick===teamAName?'#0d1117':'#888'};border:1px solid ${userPick===teamAName?'#f5c518':'#2a3a5a'};
+                        border-radius:6px;cursor:pointer;font-size:0.82em;font-weight:bold;text-align:center"
+                        id="pick_${id}_A">
+                        ${flag(teamAName)} ${teamAName==='?'?'Equipo A':teamAName}
+                    </button>
+                    <button onclick="setUserPick('${id}','${teamBName}')"
+                        style="flex:1;padding:6px 8px;background:${userPick===teamBName?'#f5c518':'#161b2e'};
+                        color:${userPick===teamBName?'#0d1117':'#888'};border:1px solid ${userPick===teamBName?'#f5c518':'#2a3a5a'};
+                        border-radius:6px;cursor:pointer;font-size:0.82em;font-weight:bold;text-align:center"
+                        id="pick_${id}_B">
+                        ${flag(teamBName)} ${teamBName==='?'?'Equipo B':teamBName}
+                    </button>
+                </div>
+                ${userPick ? `<div style="margin-top:6px;font-size:0.75em;color:#4caf50;text-align:center">✅ Tu pick: ${flag(userPick)} ${userPick}</div>` : ''}
+                ` : `
+                <div style="text-align:center;color:#555;font-size:0.8em;margin-top:4px">
+                    ${userPick ? `Tu pick: ${flag(userPick)} <strong style="color:#aaa">${userPick}</strong>` : '🔒 No disponible aún'}
+                </div>`}
+            </div>`;
+        }
+        h += '</div></div>';
+    }
+
+    if (!anyOpen) {
+        h += `<div style="text-align:center;padding:30px;color:#555;font-size:0.95em">
+            🔒 El admin aún no ha habilitado ninguna ronda para picks.<br>
+            <span style="font-size:0.85em;color:#444">Vuelve cuando empiece la fase eliminatoria.</span>
+        </div>`;
+    }
+
+    document.getElementById('elimContainer').innerHTML = h;
+}
+
+function setUserPick(matchId, team) {
+    const picks = getUserElimPicks();
+    picks[matchId] = team;
+    setUserElimPicks(picks);
+    showToast('✅ Pick guardado: ' + team);
+    renderUserElimPicks();
+}
+
+// ── ADMIN: ELIM CONFIG (habilitar rondas para user picks) ──
+function renderAdminElimConfig() {
+    const cfg = getElimConfig();
+    let h = `<div style="margin-bottom:14px;font-size:0.85em;color:#888">
+        Habilita las rondas para que los usuarios puedan ingresar sus predicciones de eliminatorias.
+        Por defecto todo está bloqueado.
+    </div>`;
+
+    for (const round of ROUNDS_CONFIG) {
+        const isOpen = cfg[round.key] === true;
+        h += `<div style="display:flex;justify-content:space-between;align-items:center;
+            padding:10px 14px;background:#161b2e;border-radius:6px;margin-bottom:8px;
+            border-left:3px solid ${isOpen?'#4caf50':'#f44336'}">
+            <span style="font-weight:bold">${round.label}</span>
+            <button onclick="toggleElimRound('${round.key}')"
+                style="padding:6px 16px;background:${isOpen?'#0d2a0d':'#2a0d0d'};
+                border:1px solid ${isOpen?'#4caf50':'#f44336'};border-radius:6px;
+                color:${isOpen?'#4caf50':'#f44336'};cursor:pointer;font-weight:bold;font-size:0.85em">
+                ${isOpen?'🔓 ABIERTO — clic para cerrar':'🔒 CERRADO — clic para abrir'}
+            </button>
+        </div>`;
+    }
+    document.getElementById('adminElimConfigContainer').innerHTML = h;
+}
+
+function toggleElimRound(key) {
+    const cfg = getElimConfig();
+    cfg[key] = !cfg[key];
+    setElimConfig(cfg);
+    renderAdminElimConfig();
+    showToast('✅ Ronda ' + (cfg[key]?'abierta':'cerrada'));
 }
 </script>
 </body>
