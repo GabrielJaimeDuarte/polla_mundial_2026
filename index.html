@@ -1816,21 +1816,33 @@ function renderUserElimPicks() {
 }
 
 function saveUserElimPicks() {
-    const cfg = getElimConfig();
-    const picks = getUserElimPicks();
-    for (const round of ROUNDS_CONFIG) {
-        if (!cfg[round.key]) continue;
-        for (const id of round.ids) {
-            const ghAEl = document.getElementById('upick_ghA_'+id);
-            const ghBEl = document.getElementById('upick_ghB_'+id);
-            if (!ghAEl||!ghBEl) continue;
-            const ghA=ghAEl.value.trim(), ghB=ghBEl.value.trim();
-            if (ghA!==''&&ghB!=='') picks[id]={ghA:parseInt(ghA),ghB:parseInt(ghB)};
+    try {
+        const cfg = getElimConfig();
+        const picks = getUserElimPicks();
+        let saved = 0;
+        for (const round of ROUNDS_CONFIG) {
+            if (!cfg[round.key]) continue;
+            for (const id of round.ids) {
+                const ghAEl = document.getElementById('upick_ghA_'+id);
+                const ghBEl = document.getElementById('upick_ghB_'+id);
+                if (!ghAEl || !ghBEl) continue;
+                const ghA = ghAEl.value.trim();
+                const ghB = ghBEl.value.trim();
+                if (ghA === '' || ghB === '') {
+                    // Si borraron los valores, eliminar el pick
+                    delete picks[id];
+                } else {
+                    picks[id] = {ghA: parseInt(ghA), ghB: parseInt(ghB)};
+                    saved++;
+                }
+            }
         }
+        setUserElimPicks(picks);
+        showToast('✅ ' + saved + ' picks guardados');
+        renderUserElimPicks();
+    } catch(e) {
+        alert('Error al guardar: ' + e.message);
     }
-    setUserElimPicks(picks);
-    showToast('✅ Picks de eliminatorias guardados');
-    renderUserElimPicks();
 }
 
 // ── ADMIN: ELIM RESULTS (by round) ──
@@ -1880,29 +1892,54 @@ function renderAdminElimResults() {
 }
 
 function saveAdminElimResults() {
-    const results = getElimResults();
-    const cfg = getElimConfig();
-    const allM = getAllElimMatches();
-    for (const round of ROUNDS_CONFIG) {
-        if (!cfg[round.key]) continue;
-        for (const id of round.ids) {
-            const ghAEl = document.getElementById('elim_ghA_'+id);
-            const ghBEl = document.getElementById('elim_ghB_'+id);
-            if (!ghAEl||!ghBEl) continue;
-            if (!results[id]) results[id]={};
-            const ghA=ghAEl.value.trim(), ghB=ghBEl.value.trim();
-            results[id].ghA = ghA!==''?parseInt(ghA):undefined;
-            results[id].ghB = ghB!==''?parseInt(ghB):undefined;
-            // Store team names for resolution
-            const match = allM.find(m=>m.id===id);
-            if (match&&match.teamA&&typeof match.teamA==='object') {
-                // Will be resolved at render time
+    try {
+        const results = getElimResults();
+        const allM = getAllElimMatches();
+        let saved = 0;
+
+        // Save ALL open rounds - iterate all matches that have inputs in DOM
+        for (const round of ROUNDS_CONFIG) {
+            for (const id of round.ids) {
+                const ghAEl = document.getElementById('elim_ghA_'+id);
+                const ghBEl = document.getElementById('elim_ghB_'+id);
+                if (!ghAEl || !ghBEl) continue; // input not rendered (round closed)
+                if (!results[id]) results[id] = {};
+                const ghA = ghAEl.value.trim();
+                const ghB = ghBEl.value.trim();
+                if (ghA !== '') results[id].ghA = parseInt(ghA);
+                if (ghB !== '') results[id].ghB = parseInt(ghB);
+                // Store team names for later rounds resolution
+                const match = allM.find(m=>m.id===id);
+                if (match) {
+                    const elimRes = getElimResults();
+                    if (match.teamA && typeof match.teamA === 'object') {
+                        // 16avos - store resolved names from current standings
+                        const users = getUsers();
+                        const ml = users[currentUser]?.matches||[];
+                        const standings={};
+                        for (const g in GROUPS) standings[g]=calcStandings(g,ml);
+                        const best3rds=getBest3rds(ml);
+                        results[id].teamA = resolveTeam(match.teamA,standings,best3rds);
+                        results[id].teamB = resolveTeam(match.teamB,standings,best3rds);
+                    } else {
+                        // Later rounds - resolve from previous results
+                        const tA = resolveElimTeam(match.teamA, results);
+                        const tB = resolveElimTeam(match.teamB, results);
+                        if (tA) results[id].teamA = tA;
+                        if (tB) results[id].teamB = tB;
+                    }
+                }
+                saved++;
             }
         }
+
+        setElimResults(results);
+        showToast('✅ ' + saved + ' partidos eliminatorias guardados');
+        renderAdminElimResults();
+        renderEliminatorias('real');
+    } catch(e) {
+        alert('Error al guardar: ' + e.message);
     }
-    setElimResults(results);
-    showToast('✅ Resultados eliminatorias guardados');
-    renderAdminElimResults();
 }
 
 // ── ADMIN: ELIM CONFIG ──
