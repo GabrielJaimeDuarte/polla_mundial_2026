@@ -400,6 +400,23 @@
         }
         .email-config input:focus{outline:none;border-color:#f5c518}
 
+        /* ── TOGGLE ── */
+        .toggle-btn{
+            padding:6px 14px;
+            background:#1a2540;
+            color:#888;
+            border:1px solid #2a3a5a;
+            border-radius:20px;
+            cursor:pointer;
+            font-size:0.82em;
+            font-weight:bold;
+            font-family:'Barlow Condensed',sans-serif;
+            letter-spacing:1px;
+            transition:all 0.2s;
+        }
+        .toggle-btn:hover{color:#fff;border-color:#f5c518}
+        .toggle-btn.toggle-active{background:#f5c518;color:#0d1117;border-color:#f5c518}
+
         /* ── MISC ── */
         .section-title{font-family:'Bebas Neue',cursive;font-size:1.8em;letter-spacing:3px;margin-bottom:20px;color:#fff}
         .legend{display:flex;gap:20px;margin-bottom:16px;font-size:0.82em;flex-wrap:wrap}
@@ -439,25 +456,31 @@
 
     <div class="tabs" id="tabsContainer"></div>
 
-    <div id="miPronostico" class="tab-content">
-        <div class="section-title">Mi Pron&oacute;stico</div>
-        <p style="color:#666;font-size:0.85em;margin-bottom:16px">Tablas seg&uacute;n tus resultados</p>
-        <div class="legend">
-            <div class="legend-item"><div class="legend-dot" style="background:#4caf50"></div>1&ordm; y 2&ordm; clasifican</div>
-            <div class="legend-item"><div class="legend-dot" style="background:#ff9800"></div>Posible 3&ordm; clasificado</div>
-        </div>
-        <div class="groups-grid" id="myStandingsContainer"></div>
-    </div>
+    <div id="miPronostico" class="tab-content" style="display:none"></div>
 
     <div id="misPartidos" class="tab-content">
-        <div class="section-title">Mis Partidos</div>
-        <div id="myMatchesContainer"></div>
-        <div class="btn-row" id="btnRow"></div>
-    </div>
-
-    <div id="mis3eros" class="tab-content">
-        <div class="section-title">Mis Mejores 3eros</div>
-        <div id="my3rdContainer"></div>
+        <!-- Sub-tabs -->
+        <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap" id="subTabsRow">
+            <button onclick="showSubTab('subPartidos',this)" class="toggle-btn toggle-active" id="stbPartidos">⚽ Partidos</button>
+            <button onclick="showSubTab('subPronostico',this)" class="toggle-btn" id="stbPronostico">📊 Mi Pronóstico</button>
+            <button onclick="showSubTab('subTerceros',this)" class="toggle-btn" id="stbTerceros">🥉 Mejores 3eros</button>
+        </div>
+        <!-- Sub-content -->
+        <div id="subPartidos">
+            <div id="myMatchesContainer"></div>
+            <div class="btn-row" id="btnRow"></div>
+        </div>
+        <div id="subPronostico" style="display:none">
+            <p style="color:#666;font-size:0.85em;margin-bottom:16px">Tablas según tus resultados</p>
+            <div class="legend">
+                <div class="legend-item"><div class="legend-dot" style="background:#4caf50"></div>1º y 2º clasifican</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#ff9800"></div>Posible 3º clasificado</div>
+            </div>
+            <div class="groups-grid" id="myStandingsContainer"></div>
+        </div>
+        <div id="subTerceros" style="display:none">
+            <div id="my3rdContainer"></div>
+        </div>
     </div>
 
     <div id="resultadosReales" class="tab-content">
@@ -473,45 +496,55 @@
     <div id="comoJugar" class="tab-content active">
         <div class="section-title">&#10067; C&oacute;mo Jugar</div>
         <div class="instructions">
-            <h3>&#9917; C&oacute;mo participar</h3>
-            <ol style="margin-left:20px;margin-bottom:16px">
-                <li>Ingresa con tu usuario y contrase&ntilde;a</li>
-                <li>Ve a <strong>Mis Partidos</strong> e ingresa tus predicciones</li>
-                <li>Haz clic en <strong>&#128190; Guardar</strong></li>
-                <li>Tus datos quedan guardados en la nube &mdash; puedes entrar desde cualquier dispositivo</li>
+            <h3>⚽ Paso 1 — Ingresa</h3>
+            <p>Usa el usuario y contraseña que te dio el administrador. Tus datos se guardan en la nube y puedes entrar desde cualquier dispositivo.</p>
+
+            <h3>📋 Paso 2 — Llena tus pronósticos</h3>
+            <ol style="margin-left:20px;margin-bottom:16px;line-height:2">
+                <li>Ve a la pestaña <strong>⚽ Mi Polla</strong></li>
+                <li>En <strong>Partidos</strong> ingresa el marcador que crees que quedará en cada partido</li>
+                <li>Presiona <strong>💾 Guardar pronósticos</strong> (botón amarillo abajo)</li>
+                <li>Puedes volver a editar y guardar cuantas veces quieras <strong>antes</strong> de que empiece el partido</li>
             </ol>
 
-            <h3>&#127942; Sistema de Puntos</h3>
+            <h3>🔒 Bloqueo automático</h3>
+            <p>Cada partido se bloquea a las <strong>00:00 del día del partido</strong> (hora Colombia). Verás una cuenta regresiva ⏱ mientras esté abierto y un candado 🔒 cuando esté cerrado. El marcador que guardaste queda fijo y ya no se puede cambiar.</p>
+
+            <h3>🏆 Sistema de Puntos</h3>
             <table class="pts-table">
                 <tr><th>Acierto</th><th>Puntos</th></tr>
-                <tr><td>Gol local exacto</td><td>+1</td></tr>
-                <tr><td>Gol visitante exacto</td><td>+1</td></tr>
-                <tr><td>Resultado correcto (ganador/empate)</td><td>+2</td></tr>
-                <tr><td>Marcador exacto completo (BONUS)</td><td>+3 extra</td></tr>
-                <tr><td><strong>M&aacute;ximo por partido</strong></td><td><strong>7 pts</strong></td></tr>
+                <tr><td>⚽ Gol local exacto</td><td>+1</td></tr>
+                <tr><td>⚽ Gol visitante exacto</td><td>+1</td></tr>
+                <tr><td>✅ Resultado correcto (quién gana o empate)</td><td>+2</td></tr>
+                <tr><td>🎯 Marcador exacto completo (BONUS)</td><td>+3 extra</td></tr>
+                <tr><td><strong>🏅 Máximo por partido</strong></td><td><strong>7 pts</strong></td></tr>
             </table>
 
-            <h3>&#128221; Ejemplos</h3>
+            <h3>📝 Ejemplos</h3>
             <div class="example-box">
-                <strong>Real: 0-0 &mdash; T&uacute; pronosticaste: 0-0</strong><br>
-                &#9989; Gol local exacto: +1 &nbsp;&#9989; Gol visitante exacto: +1<br>
-                &#9989; Resultado correcto: +2 &nbsp;&#9989; Marcador exacto bonus: +3<br>
-                <strong style="color:#f5c518">Total: 7 puntos</strong>
+                <strong>Real: 0-0 — Tú pronosticaste: 0-0</strong><br>
+                ✅ Gol local: +1 &nbsp;✅ Gol visitante: +1 &nbsp;✅ Resultado: +2 &nbsp;🎯 Marcador exacto: +3<br>
+                <strong style="color:#f5c518">Total: 7 puntos (máximo)</strong>
             </div>
             <div class="example-box">
-                <strong>Real: 5-4 &mdash; T&uacute; pronosticaste: 2-1</strong><br>
-                &#10060; Gol local exacto &nbsp;&#10060; Gol visitante exacto<br>
-                &#9989; Resultado correcto (local gana): +2<br>
+                <strong>Real: 3-1 — Tú pronosticaste: 2-0</strong><br>
+                ❌ Gol local &nbsp;❌ Gol visitante &nbsp;✅ Resultado (local gana): +2<br>
+                <strong style="color:#f5c518">Total: 2 puntos</strong>
+            </div>
+            <div class="example-box">
+                <strong>Real: 2-2 — Tú pronosticaste: 1-1</strong><br>
+                ❌ Gol local &nbsp;❌ Gol visitante &nbsp;✅ Resultado (empate): +2<br>
                 <strong style="color:#f5c518">Total: 2 puntos</strong>
             </div>
 
-            <h3>&#128202; Tablas</h3>
-            <p><strong>Mi Pron&oacute;stico</strong>: c&oacute;mo quedar&iacute;an los grupos seg&uacute;n tus predicciones.</p>
-            <p><strong>Clasificaci&oacute;n</strong>: ranking de todos los participantes con puntos reales acumulados.</p>
-            <p><strong>Mis 3eros</strong>: los mejores terceros de cada grupo seg&uacute;n tu pron&oacute;stico.</p>
+            <h3>📊 Pestañas de Mi Polla</h3>
+            <p style="margin-bottom:8px"><strong>⚽ Partidos</strong> — Ingresa y guarda tus pronósticos aquí.</p>
+            <p style="margin-bottom:8px"><strong>📊 Mi Pronóstico</strong> — Cómo quedarían las tablas de posiciones según tus predicciones.</p>
+            <p style="margin-bottom:8px"><strong>🥉 Mejores 3eros</strong> — Los mejores terceros de cada grupo según tu pronóstico.</p>
 
-            <h3>&#128274; Bloqueo autom&aacute;tico</h3>
-            <p>Los partidos se bloquean <strong>24 horas antes</strong> de su inicio. &iexcl;No olvides ingresar tus pron&oacute;sticos a tiempo!</p>
+            <h3>📈 Otras secciones</h3>
+            <p style="margin-bottom:8px"><strong>Resultados Reales</strong> — Resultados y tablas reales actualizados por el admin después de cada jornada.</p>
+            <p><strong>🏆 Clasificación</strong> — Ranking general de todos los participantes con puntos acumulados en tiempo real.</p>
         </div>
     </div>
 
@@ -832,9 +865,7 @@ function init() {
     const isAdmin = currentUser === ADMIN_USER;
     let tabs = `
         <button class="tab-btn active" onclick="switchTab('comoJugar',this)">❓ Cómo Jugar</button>
-        <button class="tab-btn" onclick="switchTab('misPartidos',this)">Mis Partidos</button>
-        <button class="tab-btn" onclick="switchTab('miPronostico',this)">Mi Pronóstico</button>
-        <button class="tab-btn" onclick="switchTab('mis3eros',this)">Mis 3eros</button>
+        <button class="tab-btn" onclick="switchTab('misPartidos',this)">⚽ Mi Polla</button>
         <button class="tab-btn" onclick="switchTab('resultadosReales',this)">Resultados Reales</button>
         <button class="tab-btn" onclick="switchTab('clasificacion',this)">🏆 Clasificación</button>
     `;
@@ -865,6 +896,18 @@ function init() {
     if (isAdmin) { renderAllForecasts(); renderAdminRealResults(); renderUserList(); }
 }
 
+function showSubTab(subId, btn) {
+    ['subPartidos','subPronostico','subTerceros'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = id===subId ? 'block' : 'none';
+    });
+    document.querySelectorAll('#subTabsRow .toggle-btn').forEach(b => b.classList.remove('toggle-active'));
+    if (btn) btn.classList.add('toggle-active');
+    // Show/hide save bar only when on Partidos sub-tab
+    const bar = document.getElementById('fixedSaveBar');
+    if (bar) bar.style.display = subId==='subPartidos' ? 'flex' : 'none';
+}
+
 function switchTab(id, btn) {
     const adminTabs = ['adminPanel','adminUsuarios','adminSection'];
     if (adminTabs.includes(id) && currentUser !== ADMIN_USER) return;
@@ -874,7 +917,11 @@ function switchTab(id, btn) {
     if (el) el.classList.add('active');
     if (btn) btn.classList.add('active');
     const bar = document.getElementById('fixedSaveBar');
-    if (bar) bar.style.display = id === 'misPartidos' ? 'flex' : 'none';
+    // Show save bar only if on misPartidos AND subPartidos is active
+    if (bar) {
+        const subP = document.getElementById('subPartidos');
+        bar.style.display = (id==='misPartidos' && subP && subP.style.display!=='none') ? 'flex' : 'none';
+    }
 }
 
 // ── POINTS ──
@@ -1103,15 +1150,11 @@ function renderRealResults() {
 
     // ── TOGGLE BUTTONS ──
     let html = `
-        <div style="display:flex;gap:10px;margin-bottom:20px">
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
             <button onclick="showRealView('resultados')" id="btnResultados"
-                style="padding:10px 24px;background:#f5c518;color:#0d1117;border:none;border-radius:6px;font-weight:bold;cursor:pointer;font-family:'Bebas Neue',cursive;letter-spacing:2px;font-size:1em">
-                📋 RESULTADOS
-            </button>
+                class="toggle-btn toggle-active">📋 Resultados</button>
             <button onclick="showRealView('posiciones')" id="btnPosiciones"
-                style="padding:10px 24px;background:#1a2540;color:#aaa;border:1px solid #2a3a5a;border-radius:6px;font-weight:bold;cursor:pointer;font-family:'Bebas Neue',cursive;letter-spacing:2px;font-size:1em">
-                📊 POSICIONES
-            </button>
+                class="toggle-btn">📊 Posiciones</button>
         </div>`;
 
     // ── RESULTADOS ──
@@ -1172,12 +1215,8 @@ function renderRealResults() {
 function showRealView(view) {
     document.getElementById('viewResultados').style.display = view==='resultados' ? 'grid' : 'none';
     document.getElementById('viewPosiciones').style.display = view==='posiciones' ? 'grid' : 'none';
-    document.getElementById('btnResultados').style.background = view==='resultados' ? '#f5c518' : '#1a2540';
-    document.getElementById('btnResultados').style.color = view==='resultados' ? '#0d1117' : '#aaa';
-    document.getElementById('btnResultados').style.border = view==='resultados' ? 'none' : '1px solid #2a3a5a';
-    document.getElementById('btnPosiciones').style.background = view==='posiciones' ? '#f5c518' : '#1a2540';
-    document.getElementById('btnPosiciones').style.color = view==='posiciones' ? '#0d1117' : '#aaa';
-    document.getElementById('btnPosiciones').style.border = view==='posiciones' ? 'none' : '1px solid #2a3a5a';
+    document.getElementById('btnResultados').className = 'toggle-btn' + (view==='resultados' ? ' toggle-active' : '');
+    document.getElementById('btnPosiciones').className = 'toggle-btn' + (view==='posiciones' ? ' toggle-active' : '');
 }
 
 function renderRanking() {
