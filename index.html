@@ -596,13 +596,19 @@
     <div id="adminSection" class="tab-content">
         <div class="section-title">Admin &#128295;</div>
         <div class="admin-card">
-            <h3>Cargar Resultados Reales</h3>
+            <h3>Cargar Resultados Reales — Fase de Grupos</h3>
             <div id="adminRealResultsContainer"></div>
             <div class="btn-row">
                 <button class="btn-save" onclick="saveRealResults()">&#128190; Guardar Resultados</button>
                 <button class="btn-sec" onclick="openEmailConfig()">&#9881;&#65039; Config Email</button>
-                <button class="btn-sec" onclick="resetAllUserMatches()" style="border-color:#f44336;color:#f44336">🗑️ Limpiar pronósticos usuarios</button>
+                <button class="btn-sec" onclick="resetAllUserMatches()" style="border-color:#f44336;color:#f44336">🗑️ Limpiar pronósticos</button>
             </div>
+        </div>
+
+        <div class="admin-card" style="margin-top:20px">
+            <h3>🏟️ Resultados Eliminatorias</h3>
+            <p style="color:#888;font-size:0.85em;margin-bottom:16px">Cada partido tiene un candado 🔒/🔓 — libéralo para poder ingresar resultados. Bloqueado = no editable.</p>
+            <div id="adminElimContainer"></div>
         </div>
         <div class="email-config" id="emailConfigPanel" style="display:none">
             <h3 style="color:#f5c518;margin-bottom:14px">Configurar EmailJS</h3>
@@ -644,7 +650,8 @@ function loadAllFromFirebase(callback) {
     Promise.all([
         db.ref('users').once('value').then(s => { if(s.val()) localStorage.setItem('wc2026_users', JSON.stringify(s.val())); }),
         db.ref('real').once('value').then(s => { if(s.val()) localStorage.setItem('wc2026_real', JSON.stringify(s.val())); }),
-        db.ref('ejs').once('value').then(s => { if(s.val()) localStorage.setItem('wc2026_ejs', JSON.stringify(s.val())); })
+        db.ref('ejs').once('value').then(s => { if(s.val()) localStorage.setItem('wc2026_ejs', JSON.stringify(s.val())); }),
+        db.ref('elim').once('value').then(s => { if(s.val()) localStorage.setItem('wc2026_elim', JSON.stringify(s.val())); })
     ]).then(() => callback()).catch(() => callback());
 }
 
@@ -909,7 +916,7 @@ function init() {
     renderRealResults();
     renderRanking();
     renderEliminatorias('miPolla');
-    if (isAdmin) { renderAllForecasts(); renderAdminRealResults(); renderUserList(); }
+    if (isAdmin) { renderAllForecasts(); renderAdminRealResults(); renderAdminElimResults(); renderUserList(); }
 }
 
 function showSubTab(subId, btn) {
@@ -1435,136 +1442,319 @@ function saveEmailConfig() {
 </script>
 <script>
 // ── ELIMINATORIAS ──
-// Criterios de desempate: 1.Pts 2.DG 3.GF 4.H2H 5.FairPlay(no impl) 6.FIFA(no impl)
 function getTopFromGroup(groupName, matchList) {
-    const sorted = calcStandings(groupName, matchList);
-    return sorted; // [0]=1ro, [1]=2do, [2]=3ro, [3]=4to
+    return calcStandings(groupName, matchList);
 }
 
 function getBest3rds(matchList) {
-    // Obtener todos los terceros y ordenarlos
     const thirds = [];
     for (const g in GROUPS) {
         const sorted = calcStandings(g, matchList);
-        if (sorted[2]) {
-            thirds.push({group: g, team: sorted[2][0], stats: sorted[2][1]});
-        }
+        if (sorted[2]) thirds.push({group:g, team:sorted[2][0], stats:sorted[2][1]});
     }
-    // Ordenar por pts, luego DG, luego GF
     thirds.sort((a,b) => {
         if (b.stats.pts !== a.stats.pts) return b.stats.pts - a.stats.pts;
-        const dga = a.stats.gf - a.stats.ga, dgb = b.stats.gf - b.stats.ga;
+        const dga=a.stats.gf-a.stats.ga, dgb=b.stats.gf-b.stats.ga;
         if (dgb !== dga) return dgb - dga;
         return b.stats.gf - a.stats.gf;
     });
-    return thirds.slice(0, 8); // top 8 terceros
+    return thirds.slice(0,8);
 }
 
-// Mapa de cruces de dieciseisavos (16avos)
-// Fuente: FIFA oficial
-const BRACKET = [
-    // Partidos fijos (1ro vs 2do directos)
-    {id:'P73', date:'Jun 28', label:'P73', teamA:{type:'2nd',group:'A'}, teamB:{type:'2nd',group:'B'}, venue:'Los Ángeles'},
-    {id:'P74', date:'Jun 29', label:'P74', teamA:{type:'1st',group:'E'}, teamB:{type:'3rd',groups:'ABCDF'}, venue:'Boston'},
-    {id:'P75', date:'Jun 29', label:'P75', teamA:{type:'1st',group:'F'}, teamB:{type:'2nd',group:'C'}, venue:'Monterrey'},
-    {id:'P76', date:'Jun 29', label:'P76', teamA:{type:'1st',group:'E'}, teamB:{type:'2nd',group:'F'}, venue:'Houston'},
-    {id:'P77', date:'Jun 30', label:'P77', teamA:{type:'1st',group:'I'}, teamB:{type:'3rd',groups:'CDFGH'}, venue:'Nueva York'},
-    {id:'P78', date:'Jun 30', label:'P78', teamA:{type:'2nd',group:'E'}, teamB:{type:'2nd',group:'I'}, venue:'Dallas'},
-    {id:'P79', date:'Jun 30', label:'P79', teamA:{type:'1st',group:'A'}, teamB:{type:'3rd',groups:'CEFHI'}, venue:'Cd. México'},
-    {id:'P80', date:'Jul 1',  label:'P80', teamA:{type:'1st',group:'L'}, teamB:{type:'3rd',groups:'EHIJK'}, venue:'Atlanta'},
-    {id:'P81', date:'Jul 1',  label:'P81', teamA:{type:'1st',group:'D'}, teamB:{type:'3rd',groups:'BEFIJ'}, venue:'San Francisco'},
-    {id:'P82', date:'Jul 1',  label:'P82', teamA:{type:'1st',group:'G'}, teamB:{type:'3rd',groups:'AEHIJ'}, venue:'Seattle'},
-    {id:'P83', date:'Jul 2',  label:'P83', teamA:{type:'2nd',group:'K'}, teamB:{type:'2nd',group:'L'}, venue:'Toronto'},
-    {id:'P84', date:'Jul 2',  label:'P84', teamA:{type:'1st',group:'H'}, teamB:{type:'2nd',group:'J'}, venue:'Los Ángeles'},
-    {id:'P85', date:'Jul 2',  label:'P85', teamA:{type:'1st',group:'B'}, teamB:{type:'3rd',groups:'EFGIJ'}, venue:'Vancouver'},
-    {id:'P86', date:'Jul 3',  label:'P86', teamA:{type:'1st',group:'J'}, teamB:{type:'2nd',group:'H'}, venue:'Miami'},
-    {id:'P87', date:'Jul 3',  label:'P87', teamA:{type:'1st',group:'K'}, teamB:{type:'3rd',groups:'DEJIL'}, venue:'Kansas City'},
-    {id:'P88', date:'Jul 3',  label:'P88', teamA:{type:'2nd',group:'D'}, teamB:{type:'2nd',group:'G'}, venue:'Dallas'},
+const BRACKET_16 = [
+    {id:'P73',date:'Jun 28',teamA:{type:'2nd',group:'A'},teamB:{type:'2nd',group:'B'},venue:'Los Ángeles'},
+    {id:'P74',date:'Jun 29',teamA:{type:'1st',group:'E'},teamB:{type:'3rd',groups:'ABCDF'},venue:'Boston'},
+    {id:'P75',date:'Jun 29',teamA:{type:'1st',group:'F'},teamB:{type:'2nd',group:'C'},venue:'Monterrey'},
+    {id:'P76',date:'Jun 29',teamA:{type:'1st',group:'E'},teamB:{type:'2nd',group:'F'},venue:'Houston'},
+    {id:'P77',date:'Jun 30',teamA:{type:'1st',group:'I'},teamB:{type:'3rd',groups:'CDFGH'},venue:'Nueva York'},
+    {id:'P78',date:'Jun 30',teamA:{type:'2nd',group:'E'},teamB:{type:'2nd',group:'I'},venue:'Dallas'},
+    {id:'P79',date:'Jun 30',teamA:{type:'1st',group:'A'},teamB:{type:'3rd',groups:'CEFHI'},venue:'Cd. México'},
+    {id:'P80',date:'Jul 1', teamA:{type:'1st',group:'L'},teamB:{type:'3rd',groups:'EHIJK'},venue:'Atlanta'},
+    {id:'P81',date:'Jul 1', teamA:{type:'1st',group:'D'},teamB:{type:'3rd',groups:'BEFIJ'},venue:'San Francisco'},
+    {id:'P82',date:'Jul 1', teamA:{type:'1st',group:'G'},teamB:{type:'3rd',groups:'AEHIJ'},venue:'Seattle'},
+    {id:'P83',date:'Jul 2', teamA:{type:'2nd',group:'K'},teamB:{type:'2nd',group:'L'},venue:'Toronto'},
+    {id:'P84',date:'Jul 2', teamA:{type:'1st',group:'H'},teamB:{type:'2nd',group:'J'},venue:'Los Ángeles'},
+    {id:'P85',date:'Jul 2', teamA:{type:'1st',group:'B'},teamB:{type:'3rd',groups:'EFGIJ'},venue:'Vancouver'},
+    {id:'P86',date:'Jul 3', teamA:{type:'1st',group:'J'},teamB:{type:'2nd',group:'H'},venue:'Miami'},
+    {id:'P87',date:'Jul 3', teamA:{type:'1st',group:'K'},teamB:{type:'3rd',groups:'DEJIL'},venue:'Kansas City'},
+    {id:'P88',date:'Jul 3', teamA:{type:'2nd',group:'D'},teamB:{type:'2nd',group:'G'},venue:'Dallas'},
+];
+
+// Octavos, Cuartos, Semis, Final, 3er puesto
+const BRACKET_LATER = [
+    // Octavos (basados en ganadores de 16avos)
+    {id:'P89',round:'Octavos',date:'Jul 4', teamA:'Gan. P74',teamB:'Gan. P77',venue:'Filadelfia'},
+    {id:'P90',round:'Octavos',date:'Jul 4', teamA:'Gan. P73',teamB:'Gan. P75',venue:'Houston'},
+    {id:'P91',round:'Octavos',date:'Jul 5', teamA:'Gan. P76',teamB:'Gan. P78',venue:'Nueva York'},
+    {id:'P92',round:'Octavos',date:'Jul 5', teamA:'Gan. P79',teamB:'Gan. P80',venue:'Cd. México'},
+    {id:'P93',round:'Octavos',date:'Jul 6', teamA:'Gan. P83',teamB:'Gan. P84',venue:'Dallas'},
+    {id:'P94',round:'Octavos',date:'Jul 6', teamA:'Gan. P81',teamB:'Gan. P82',venue:'Seattle'},
+    {id:'P95',round:'Octavos',date:'Jul 7', teamA:'Gan. P86',teamB:'Gan. P88',venue:'Atlanta'},
+    {id:'P96',round:'Octavos',date:'Jul 7', teamA:'Gan. P85',teamB:'Gan. P87',venue:'Vancouver'},
+    // Cuartos
+    {id:'P97', round:'Cuartos',date:'Jul 9', teamA:'Gan. P89',teamB:'Gan. P90',venue:'Boston'},
+    {id:'P98', round:'Cuartos',date:'Jul 10',teamA:'Gan. P93',teamB:'Gan. P94',venue:'Los Ángeles'},
+    {id:'P99', round:'Cuartos',date:'Jul 11',teamA:'Gan. P91',teamB:'Gan. P92',venue:'Miami'},
+    {id:'P100',round:'Cuartos',date:'Jul 11',teamA:'Gan. P95',teamB:'Gan. P96',venue:'Kansas City'},
+    // Semis
+    {id:'P101',round:'Semifinal',date:'Jul 14',teamA:'Gan. P97', teamB:'Gan. P98', venue:'Dallas'},
+    {id:'P102',round:'Semifinal',date:'Jul 15',teamA:'Gan. P99', teamB:'Gan. P100',venue:'Atlanta'},
+    // 3er puesto
+    {id:'P103',round:'3er Puesto',date:'Jul 18',teamA:'Per. P101',teamB:'Per. P102',venue:'Miami'},
+    // Final
+    {id:'P104',round:'FINAL 🏆',date:'Jul 19',teamA:'Gan. P101',teamB:'Gan. P102',venue:'Nueva York'},
 ];
 
 function resolveTeam(slot, standings, best3rds) {
-    if (slot.type === '1st') {
-        const s = standings[slot.group];
-        return s && s[0] ? s[0][0] : '?';
-    }
-    if (slot.type === '2nd') {
-        const s = standings[slot.group];
-        return s && s[1] ? s[1][0] : '?';
-    }
-    if (slot.type === '3rd') {
-        // Find the best 3rd from the specified groups
-        const eligible = best3rds.filter(t => slot.groups.includes(t.group));
-        return eligible.length > 0 ? eligible[0].team : '?';
+    if (slot.type==='1st') { const s=standings[slot.group]; return s&&s[0]?s[0][0]:'?'; }
+    if (slot.type==='2nd') { const s=standings[slot.group]; return s&&s[1]?s[1][0]:'?'; }
+    if (slot.type==='3rd') {
+        const eligible = best3rds.filter(t=>slot.groups.includes(t.group));
+        return eligible.length>0?eligible[0].team:'?';
     }
     return '?';
 }
 
+function getElimResults() {
+    try { return JSON.parse(localStorage.getItem('wc2026_elim')||'{}'); } catch { return {}; }
+}
+function setElimResults(r) {
+    localStorage.setItem('wc2026_elim', JSON.stringify(r));
+    if (db) db.ref('elim').set(r).catch(()=>{});
+}
+
 function showElimView(mode) {
-    document.getElementById('btnElimMi').className = 'toggle-btn' + (mode==='miPolla'?' toggle-active':'');
-    document.getElementById('btnElimReal').className = 'toggle-btn' + (mode==='real'?' toggle-active':'');
+    document.getElementById('btnElimMi').className = 'toggle-btn'+(mode==='miPolla'?' toggle-active':'');
+    document.getElementById('btnElimReal').className = 'toggle-btn'+(mode==='real'?' toggle-active':'');
     renderEliminatorias(mode);
+}
+
+function matchCard16(match, teamA, teamB, elimResults) {
+    const res = elimResults[match.id] || {};
+    const ghA = res.ghA!==undefined ? res.ghA : '';
+    const ghB = res.ghB!==undefined ? res.ghB : '';
+    const hasResult = ghA!=='' && ghB!=='';
+    const winner = hasResult ? (ghA>ghB?teamA:ghA<ghB?teamB:'Penales') : '';
+    const labelA = match.teamA.type==='1st'?`1º Grp ${match.teamA.group}`:
+                   match.teamA.type==='2nd'?`2º Grp ${match.teamA.group}`:
+                   `3º mejor (${match.teamA.groups})`;
+    const labelB = match.teamB.type==='1st'?`1º Grp ${match.teamB.group}`:
+                   match.teamB.type==='2nd'?`2º Grp ${match.teamB.group}`:
+                   `3º mejor (${match.teamB.groups})`;
+    return `<div style="background:#0f1428;border-radius:8px;padding:12px 14px;border-left:3px solid ${hasResult?'#f5c518':'#1e2a3a'}">
+        <div style="display:flex;justify-content:space-between;font-size:0.72em;color:#555;margin-bottom:8px">
+            <span style="color:#f5c518;font-weight:bold">${match.id}</span>
+            <span>📅 ${match.date} · ${match.venue}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center">
+            <div style="text-align:right">
+                <div style="font-size:0.7em;color:#555;margin-bottom:2px">${labelA}</div>
+                <div style="font-weight:bold;font-size:0.9em;color:${teamA==='?'?'#555':'#fff'}">${flag(teamA)} ${teamA}</div>
+            </div>
+            <div style="text-align:center;min-width:60px">
+                ${hasResult
+                    ? `<span style="font-family:'Bebas Neue',cursive;font-size:1.2em;color:#f5c518">${ghA} - ${ghB}</span>`
+                    : `<span style="color:#333;font-size:0.85em">vs</span>`
+                }
+            </div>
+            <div style="text-align:left">
+                <div style="font-size:0.7em;color:#555;margin-bottom:2px">${labelB}</div>
+                <div style="font-weight:bold;font-size:0.9em;color:${teamB==='?'?'#555':'#fff'}">${teamB} ${flag(teamB)}</div>
+            </div>
+        </div>
+        ${winner?`<div style="text-align:center;margin-top:6px;font-size:0.75em;color:#4caf50">✅ Avanza: ${winner}</div>`:''}
+    </div>`;
+}
+
+function matchCardLater(match, elimResults) {
+    const res = elimResults[match.id] || {};
+    const ghA = res.ghA!==undefined ? res.ghA : '';
+    const ghB = res.ghB!==undefined ? res.ghB : '';
+    const hasResult = ghA!=='' && ghB!=='';
+    // Resolve actual team names from previous results
+    const teamA = resolveElimTeam(match.teamA, elimResults) || match.teamA;
+    const teamB = resolveElimTeam(match.teamB, elimResults) || match.teamB;
+    const isWinner = match.teamA.startsWith('Gan.');
+    const borderColor = match.round==='FINAL 🏆'?'#f5c518':match.round==='Semifinal'?'#9e9e9e':match.round==='3er Puesto'?'#cd7f32':'#1e2a3a';
+    return `<div style="background:#0f1428;border-radius:8px;padding:12px 14px;border-left:3px solid ${borderColor}">
+        <div style="display:flex;justify-content:space-between;font-size:0.72em;margin-bottom:8px">
+            <span style="color:#f5c518;font-weight:bold">${match.id}</span>
+            <span style="color:#555">📅 ${match.date} · ${match.venue}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center">
+            <div style="text-align:right">
+                <div style="font-size:0.75em;color:#555;margin-bottom:2px">${match.teamA}</div>
+                <div style="font-weight:bold;font-size:0.9em;color:${teamA===match.teamA?'#555':'#fff'}">${flag(teamA)} ${teamA}</div>
+            </div>
+            <div style="text-align:center;min-width:60px">
+                ${hasResult
+                    ? `<span style="font-family:'Bebas Neue',cursive;font-size:1.2em;color:#f5c518">${ghA} - ${ghB}</span>`
+                    : `<span style="color:#333;font-size:0.85em">vs</span>`
+                }
+            </div>
+            <div style="text-align:left">
+                <div style="font-size:0.75em;color:#555;margin-bottom:2px">${match.teamB}</div>
+                <div style="font-weight:bold;font-size:0.9em;color:${teamB===match.teamB?'#555':'#fff'}">${teamB} ${flag(teamB)}</div>
+            </div>
+        </div>
+    </div>`;
+}
+
+function resolveElimTeam(label, elimResults) {
+    // e.g. "Gan. P73" -> look up who won P73
+    const m = label.match(/(Gan|Per)\. (P\d+)/);
+    if (!m) return null;
+    const isWinner = m[1]==='Gan';
+    const pid = m[2];
+    const res = elimResults[pid];
+    if (!res || res.ghA===undefined || res.ghB===undefined) return null;
+    if (res.ghA === res.ghB) return res.winner||null; // penales - admin defines winner
+    if (isWinner) return res.ghA > res.ghB ? res.teamA : res.teamB;
+    return res.ghA > res.ghB ? res.teamB : res.teamA;
+}
+
+function sectionHeader(title) {
+    return `<div style="font-family:'Bebas Neue',cursive;font-size:1.1em;letter-spacing:2px;color:#f5c518;margin:20px 0 10px;padding:8px 12px;background:#1a2540;border-radius:6px">${title}</div>`;
 }
 
 function renderEliminatorias(mode) {
     const users = getUsers();
     const matchList = mode==='miPolla'
-        ? (users[currentUser]?.matches || [])
-        : getReal().filter(m => m.gh!==null && m.gh!==undefined);
+        ? (users[currentUser]?.matches||[])
+        : getReal().filter(m=>m.gh!==null&&m.gh!==undefined);
 
-    // Build standings for all groups
     const standings = {};
     for (const g in GROUPS) standings[g] = calcStandings(g, matchList);
-
-    // Get best 3rds
     const best3rds = getBest3rds(matchList);
+    const elimResults = getElimResults();
 
-    let h = `<div style="margin-bottom:12px;padding:10px 14px;background:#1a2540;border-radius:6px;font-size:0.82em;color:#888">
-        <strong style="color:#f5c518">Criterios de desempate:</strong>
-        1. Puntos &nbsp;|&nbsp; 2. Diferencia de goles &nbsp;|&nbsp; 3. Goles anotados &nbsp;|&nbsp; 4. H2H &nbsp;|&nbsp; 5. Fair Play &nbsp;|&nbsp; 6. Ranking FIFA
+    let h = `<div style="margin-bottom:12px;padding:8px 14px;background:#1a2540;border-radius:6px;font-size:0.78em;color:#888">
+        <strong style="color:#f5c518">Criterios desempate:</strong>
+        Pts → DG → GF → H2H → Fair Play → FIFA Ranking
     </div>`;
 
-    h += `<div style="font-family:'Bebas Neue',cursive;font-size:1.2em;letter-spacing:2px;color:#f5c518;margin-bottom:12px">🏟️ DIECISEISAVOS DE FINAL</div>`;
-    h += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px">`;
-
-    for (const match of BRACKET) {
+    // 16avos
+    h += sectionHeader('🏟️ DIECISEISAVOS DE FINAL (P73–P88)');
+    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:8px">';
+    for (const match of BRACKET_16) {
         const teamA = resolveTeam(match.teamA, standings, best3rds);
         const teamB = resolveTeam(match.teamB, standings, best3rds);
-        const labelA = match.teamA.type==='1st' ? `1º Grupo ${match.teamA.group}` :
-                       match.teamA.type==='2nd' ? `2º Grupo ${match.teamA.group}` :
-                       `Mejor 3º (${match.teamA.groups})`;
-        const labelB = match.teamB.type==='1st' ? `1º Grupo ${match.teamB.group}` :
-                       match.teamB.type==='2nd' ? `2º Grupo ${match.teamB.group}` :
-                       `Mejor 3º (${match.teamB.groups})`;
-        const unknownA = teamA === '?';
-        const unknownB = teamB === '?';
-
-        h += `<div style="background:#0f1428;border-radius:8px;padding:12px 14px;border-left:3px solid #1e2a3a">
-            <div style="display:flex;justify-content:space-between;font-size:0.75em;color:#555;margin-bottom:8px">
-                <span style="color:#f5c518;font-weight:bold">${match.label}</span>
-                <span>📅 ${match.date} · ${match.venue}</span>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center">
-                <div style="text-align:right">
-                    <div style="font-size:0.75em;color:#555;margin-bottom:2px">${labelA}</div>
-                    <div style="font-weight:bold;font-size:0.95em;color:${unknownA?'#555':'#fff'}">${flag(teamA)} ${teamA}</div>
-                </div>
-                <div style="color:#555;font-size:1em;font-weight:bold;padding:0 4px">vs</div>
-                <div style="text-align:left">
-                    <div style="font-size:0.75em;color:#555;margin-bottom:2px">${labelB}</div>
-                    <div style="font-weight:bold;font-size:0.95em;color:${unknownB?'#555':'#fff'}">${teamB} ${flag(teamB)}</div>
-                </div>
-            </div>
-        </div>`;
+        // Store team names in elimResults for later rounds
+        if (!elimResults[match.id]) elimResults[match.id] = {};
+        elimResults[match.id].teamA = teamA;
+        elimResults[match.id].teamB = teamB;
+        h += matchCard16(match, teamA, teamB, elimResults);
     }
-
     h += '</div>';
 
-    // Note about 3rds
-    if (best3rds.length < 8) {
-        h += `<p style="margin-top:16px;color:#666;font-size:0.85em">⚠️ Los mejores terceros se determinan cuando todos los grupos tengan partidos ingresados.</p>`;
+    // Octavos
+    h += sectionHeader('⚔️ OCTAVOS DE FINAL (P89–P96)');
+    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:8px">';
+    for (const match of BRACKET_LATER.filter(m=>m.round==='Octavos')) {
+        h += matchCardLater(match, elimResults);
     }
+    h += '</div>';
+
+    // Cuartos
+    h += sectionHeader('🥊 CUARTOS DE FINAL (P97–P100)');
+    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:8px">';
+    for (const match of BRACKET_LATER.filter(m=>m.round==='Cuartos')) {
+        h += matchCardLater(match, elimResults);
+    }
+    h += '</div>';
+
+    // Semis
+    h += sectionHeader('🔥 SEMIFINALES (P101–P102)');
+    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:8px">';
+    for (const match of BRACKET_LATER.filter(m=>m.round==='Semifinal')) {
+        h += matchCardLater(match, elimResults);
+    }
+    h += '</div>';
+
+    // 3er puesto + Final
+    h += sectionHeader('🏅 TERCER PUESTO & FINAL');
+    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:8px">';
+    for (const match of BRACKET_LATER.filter(m=>m.round==='3er Puesto'||m.round==='FINAL 🏆')) {
+        h += matchCardLater(match, elimResults);
+    }
+    h += '</div>';
 
     document.getElementById('elimContainer').innerHTML = h;
+}
+
+// ── ADMIN: ELIM RESULTS ──
+function renderAdminElimResults() {
+    const elimResults = getElimResults();
+    const allMatches = [...BRACKET_16.map(m=>({...m,teamA_label:m.teamA?.group?`${m.teamA.type==='1st'?'1º':'2º'} Grp ${m.teamA.group}`:`3º (${m.teamA.groups})`,teamB_label:m.teamB?.group?`${m.teamB.type==='1st'?'1º':'2º'} Grp ${m.teamB.group}`:`3º (${m.teamB.groups})`})),
+        ...BRACKET_LATER.map(m=>({...m,teamA_label:m.teamA,teamB_label:m.teamB}))];
+
+    const rounds = ['DIECISEISAVOS','Octavos','Cuartos','Semifinal','3er Puesto','FINAL 🏆'];
+    const roundMap = {
+        'DIECISEISAVOS': BRACKET_16.map(m=>m.id),
+        'Octavos': BRACKET_LATER.filter(m=>m.round==='Octavos').map(m=>m.id),
+        'Cuartos': BRACKET_LATER.filter(m=>m.round==='Cuartos').map(m=>m.id),
+        'Semifinal': BRACKET_LATER.filter(m=>m.round==='Semifinal').map(m=>m.id),
+        '3er Puesto': BRACKET_LATER.filter(m=>m.round==='3er Puesto').map(m=>m.id),
+        'FINAL 🏆': BRACKET_LATER.filter(m=>m.round==='FINAL 🏆').map(m=>m.id),
+    };
+
+    let h = '';
+    for (const round of rounds) {
+        const ids = roundMap[round];
+        if (!ids || !ids.length) continue;
+        h += `<div style="margin-bottom:20px"><div style="font-family:'Bebas Neue',cursive;font-size:1em;letter-spacing:2px;color:#f5c518;margin-bottom:10px;padding:6px 12px;background:#1a2540;border-radius:4px">${round}</div>`;
+        for (const id of ids) {
+            const match = allMatches.find(m=>m.id===id);
+            if (!match) continue;
+            const res = elimResults[id]||{};
+            const labelA = match.teamA_label||id;
+            const labelB = match.teamB_label||id;
+            const locked = res.locked ? true : false;
+            h += `<div style="display:grid;grid-template-columns:2fr 70px 16px 70px 2fr auto;gap:8px;align-items:center;margin-bottom:8px;font-size:0.88em">
+                <span style="color:${locked?'#888':'#e0e0e0'}">${flag(res.teamA||'')} ${res.teamA||labelA}</span>
+                <input type="number" id="elim_ghA_${id}" value="${res.ghA!==undefined?res.ghA:''}" placeholder="?" min="0"
+                    class="admin-inp" ${locked?'disabled':''}>
+                <span style="text-align:center;color:#555">-</span>
+                <input type="number" id="elim_ghB_${id}" value="${res.ghB!==undefined?res.ghB:''}" placeholder="?" min="0"
+                    class="admin-inp" ${locked?'disabled':''}>
+                <span style="color:${locked?'#888':'#e0e0e0'}">${res.teamB||labelB} ${flag(res.teamB||'')}</span>
+                <button onclick="toggleElimLock('${id}')"
+                    style="padding:4px 10px;background:${locked?'#2a0d0d':'#0d2a0d'};border:1px solid ${locked?'#f44336':'#4caf50'};border-radius:4px;color:${locked?'#f44336':'#4caf50'};cursor:pointer;font-size:0.8em;white-space:nowrap">
+                    ${locked?'🔒 Bloq':'🔓 Libre'}
+                </button>
+            </div>`;
+        }
+        h += `</div>`;
+    }
+    h += `<button class="btn-save" onclick="saveAdminElimResults()" style="margin-top:10px">💾 Guardar Eliminatorias</button>`;
+    document.getElementById('adminElimContainer').innerHTML = h;
+}
+
+function toggleElimLock(id) {
+    const results = getElimResults();
+    if (!results[id]) results[id] = {};
+    results[id].locked = !results[id].locked;
+    setElimResults(results);
+    renderAdminElimResults();
+}
+
+function saveAdminElimResults() {
+    const results = getElimResults();
+    const allIds = [...BRACKET_16.map(m=>m.id), ...BRACKET_LATER.map(m=>m.id)];
+    for (const id of allIds) {
+        if (!results[id]) results[id] = {};
+        if (results[id].locked) continue; // no cambiar si está bloqueado
+        const ghAEl = document.getElementById('elim_ghA_'+id);
+        const ghBEl = document.getElementById('elim_ghB_'+id);
+        if (!ghAEl || !ghBEl) continue;
+        const ghA = ghAEl.value.trim();
+        const ghB = ghBEl.value.trim();
+        results[id].ghA = ghA!==''?parseInt(ghA):undefined;
+        results[id].ghB = ghB!==''?parseInt(ghB):undefined;
+    }
+    setElimResults(results);
+    showToast('✅ Resultados eliminatorias guardados');
+    renderEliminatorias('real');
 }
 </script>
 </body>
