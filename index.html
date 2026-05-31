@@ -1906,7 +1906,7 @@ function renderUserElimPicks(freshPicks) {
                     </div>
                     <div style="text-align:center">
                         ${isOpen?`
-                        <div style="display:flex;align-items:center;gap:4px">
+                        <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
                             <input type="number" id="upick_ghA_${id}" value="${pickGhA}" placeholder="?" min="0"
                                 style="width:42px;padding:5px 2px;background:#161b2e;border:1px solid #2a3a5a;border-radius:5px;
                                 color:#f5c518;text-align:center;font-size:1.1em;font-weight:bold;font-family:'Bebas Neue',cursive">
@@ -1914,6 +1914,9 @@ function renderUserElimPicks(freshPicks) {
                             <input type="number" id="upick_ghB_${id}" value="${pickGhB}" placeholder="?" min="0"
                                 style="width:42px;padding:5px 2px;background:#161b2e;border:1px solid #2a3a5a;border-radius:5px;
                                 color:#f5c518;text-align:center;font-size:1.1em;font-weight:bold;font-family:'Bebas Neue',cursive">
+                            ${pickGhA!==''?`<button onclick="clearUserPick('${id}')"
+                                style="padding:2px 7px;background:transparent;border:1px solid #f44336;border-radius:4px;
+                                color:#f44336;cursor:pointer;font-size:0.75em;line-height:1.4">✕</button>`:''}
                         </div>`
                         :`<div style="font-family:'Bebas Neue',cursive;font-size:1.1em;color:${pickGhA!==''?'#aaa':'#333'}">
                             ${pickGhA!==''?`${pickGhA}-${pickGhB}`:'?-?'}
@@ -1942,6 +1945,17 @@ function renderUserElimPicks(freshPicks) {
     }
 
     document.getElementById('elimContainer').innerHTML = h;
+}
+
+function clearUserPick(id) {
+    const allPicks = JSON.parse(localStorage.getItem('wc2026_userpicks')||'{}');
+    const picks = allPicks[currentUser] || {};
+    delete picks[id];
+    allPicks[currentUser] = picks;
+    localStorage.setItem('wc2026_userpicks', JSON.stringify(allPicks));
+    if (db) db.ref('userpicks').set(allPicks).catch(()=>{});
+    showToast('✅ Pick borrado');
+    renderUserElimPicks(picks);
 }
 
 function saveUserElimPicks() {
