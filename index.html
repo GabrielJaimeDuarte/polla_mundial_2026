@@ -1583,10 +1583,9 @@ function setElimConfig(c) {
     if (db) db.ref('elimcfg').set(c).catch(()=>{});
 }
 function getUserElimPicks() {
-    try {
-        const all = JSON.parse(localStorage.getItem('wc2026_userpicks')||'{}');
-        return all[currentUser] || {};
-    } catch { return {}; }
+    // Always read fresh from localStorage to avoid stale cache
+    const all = JSON.parse(localStorage.getItem('wc2026_userpicks')||'{}');
+    return all[currentUser] || {};
 }
 function setUserElimPicks(picks) {
     const all = JSON.parse(localStorage.getItem('wc2026_userpicks')||'{}');
@@ -1793,9 +1792,9 @@ function renderEliminatorias(mode) {
 }
 
 // ── USER ELIM PICKS (with score input) ──
-function renderUserElimPicks() {
+function renderUserElimPicks(freshPicks) {
     const cfg = getElimConfig();
-    const picks = getUserElimPicks();
+    const picks = freshPicks !== undefined ? freshPicks : getUserElimPicks();
     const elimResults = getElimResults();
     const users = getUsers();
     const matchList = users[currentUser]?.matches||[];
@@ -1890,8 +1889,11 @@ function renderUserElimPicks() {
 function saveUserElimPicks() {
     try {
         const cfg = getElimConfig();
-        const picks = getUserElimPicks();
+        // Get fresh copy from localStorage directly
+        const allPicks = JSON.parse(localStorage.getItem('wc2026_userpicks')||'{}');
+        const picks = allPicks[currentUser] || {};
         let saved = 0;
+
         for (const round of ROUNDS_CONFIG) {
             if (!cfg[round.key]) continue;
             for (const id of round.ids) {
@@ -1901,17 +1903,21 @@ function saveUserElimPicks() {
                 const ghA = ghAEl.value.trim();
                 const ghB = ghBEl.value.trim();
                 if (ghA === '' || ghB === '') {
-                    // Si borraron los valores, eliminar el pick
-                    delete picks[id];
+                    delete picks[id]; // borrar el pick
                 } else {
                     picks[id] = {ghA: parseInt(ghA), ghB: parseInt(ghB)};
                     saved++;
                 }
             }
         }
-        setUserElimPicks(picks);
+
+        // Save directly to localStorage AND Firebase
+        allPicks[currentUser] = picks;
+        localStorage.setItem('wc2026_userpicks', JSON.stringify(allPicks));
+        if (db) db.ref('userpicks').set(allPicks).catch(()=>{});
+
         showToast('✅ ' + saved + ' picks guardados');
-        renderUserElimPicks();
+        renderUserElimPicks(picks); // pass fresh picks directly
     } catch(e) {
         alert('Error al guardar: ' + e.message);
     }
