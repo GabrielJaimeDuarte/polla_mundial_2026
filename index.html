@@ -1152,9 +1152,9 @@ function renderRealResults() {
     let html = `
         <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
             <button onclick="showRealView('resultados')" id="btnResultados"
-                class="toggle-btn toggle-active">📋 Resultados</button>
+                style="padding:6px 16px;background:#f5c518;color:#0d1117;border:none;border-radius:20px;cursor:pointer;font-size:0.82em;font-weight:bold;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px">📋 Resultados</button>
             <button onclick="showRealView('posiciones')" id="btnPosiciones"
-                class="toggle-btn">📊 Posiciones</button>
+                style="padding:6px 16px;background:#1a2540;color:#888;border:1px solid #2a3a5a;border-radius:20px;cursor:pointer;font-size:0.82em;font-weight:bold;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px">📊 Posiciones</button>
         </div>`;
 
     // ── RESULTADOS ──
@@ -1215,8 +1215,8 @@ function renderRealResults() {
 function showRealView(view) {
     document.getElementById('viewResultados').style.display = view==='resultados' ? 'grid' : 'none';
     document.getElementById('viewPosiciones').style.display = view==='posiciones' ? 'grid' : 'none';
-    document.getElementById('btnResultados').className = 'toggle-btn' + (view==='resultados' ? ' toggle-active' : '');
-    document.getElementById('btnPosiciones').className = 'toggle-btn' + (view==='posiciones' ? ' toggle-active' : '');
+    document.getElementById('btnResultados').style.cssText = view==='resultados' ? 'padding:6px 16px;background:#f5c518;color:#0d1117;border:none;border-radius:20px;cursor:pointer;font-size:0.82em;font-weight:bold;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px' : 'padding:6px 16px;background:#1a2540;color:#888;border:1px solid #2a3a5a;border-radius:20px;cursor:pointer;font-size:0.82em;font-weight:bold;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px';
+    document.getElementById('btnPosiciones').style.cssText = view==='posiciones' ? 'padding:6px 16px;background:#f5c518;color:#0d1117;border:none;border-radius:20px;cursor:pointer;font-size:0.82em;font-weight:bold;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px' : 'padding:6px 16px;background:#1a2540;color:#888;border:1px solid #2a3a5a;border-radius:20px;cursor:pointer;font-size:0.82em;font-weight:bold;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px';
 }
 
 function renderRanking() {
