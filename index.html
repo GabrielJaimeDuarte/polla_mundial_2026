@@ -437,8 +437,8 @@
     <div class="login-box">
         <h1>POLLA <span>MUNDIAL</span> 2026</h1>
         <p>COPA DEL MUNDO &middot; FASE DE GRUPOS</p>
-        <input type="text" id="username" placeholder="Usuario">
-        <input type="password" id="password" placeholder="Contrase&ntilde;a">
+        <input type="text" id="username" placeholder="Usuario" onkeydown="if(event.key==='Enter')login()">
+        <input type="password" id="password" placeholder="Contrase&ntilde;a" onkeydown="if(event.key==='Enter')login()">
         <button class="btn-login" id="loginBtn" onclick="login()">ENTRAR &#9917;</button>
     </div>
 </div>
@@ -490,6 +490,16 @@
             <button onclick="showRealView('posiciones')" id="btnPosiciones" class="toggle-btn">📊 Posiciones</button>
         </div>
         <div id="realResultsContainer"></div>
+    </div>
+
+    <div id="eliminatorias" class="tab-content">
+        <div class="section-title">🏟️ Eliminatorias</div>
+        <p style="color:#666;font-size:0.85em;margin-bottom:8px">Cruces calculados según tus pronósticos. Se actualiza automáticamente.</p>
+        <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+            <button onclick="showElimView('miPolla')" id="btnElimMi" class="toggle-btn toggle-active">⚽ Según mi pronóstico</button>
+            <button onclick="showElimView('real')" id="btnElimReal" class="toggle-btn">📋 Según resultados reales</button>
+        </div>
+        <div id="elimContainer"></div>
     </div>
 
     <div id="clasificacion" class="tab-content">
@@ -871,6 +881,7 @@ function init() {
         <button class="tab-btn active" onclick="switchTab('comoJugar',this)">❓ Cómo Jugar</button>
         <button class="tab-btn" onclick="switchTab('misPartidos',this)">⚽ Mi Polla</button>
         <button class="tab-btn" onclick="switchTab('resultadosReales',this)">Resultados Reales</button>
+        <button class="tab-btn" onclick="switchTab('eliminatorias',this)">🏟️ Eliminatorias</button>
         <button class="tab-btn" onclick="switchTab('clasificacion',this)">🏆 Clasificación</button>
     `;
     if (isAdmin) {
@@ -897,6 +908,7 @@ function init() {
     renderMy3rd();
     renderRealResults();
     renderRanking();
+    renderEliminatorias('miPolla');
     if (isAdmin) { renderAllForecasts(); renderAdminRealResults(); renderUserList(); }
 }
 
@@ -1419,6 +1431,140 @@ function saveEmailConfig() {
         adminMail:document.getElementById('adminMail').value
     });
     showToast('✅ Config guardada');
+}
+</script>
+<script>
+// ── ELIMINATORIAS ──
+// Criterios de desempate: 1.Pts 2.DG 3.GF 4.H2H 5.FairPlay(no impl) 6.FIFA(no impl)
+function getTopFromGroup(groupName, matchList) {
+    const sorted = calcStandings(groupName, matchList);
+    return sorted; // [0]=1ro, [1]=2do, [2]=3ro, [3]=4to
+}
+
+function getBest3rds(matchList) {
+    // Obtener todos los terceros y ordenarlos
+    const thirds = [];
+    for (const g in GROUPS) {
+        const sorted = calcStandings(g, matchList);
+        if (sorted[2]) {
+            thirds.push({group: g, team: sorted[2][0], stats: sorted[2][1]});
+        }
+    }
+    // Ordenar por pts, luego DG, luego GF
+    thirds.sort((a,b) => {
+        if (b.stats.pts !== a.stats.pts) return b.stats.pts - a.stats.pts;
+        const dga = a.stats.gf - a.stats.ga, dgb = b.stats.gf - b.stats.ga;
+        if (dgb !== dga) return dgb - dga;
+        return b.stats.gf - a.stats.gf;
+    });
+    return thirds.slice(0, 8); // top 8 terceros
+}
+
+// Mapa de cruces de dieciseisavos (16avos)
+// Fuente: FIFA oficial
+const BRACKET = [
+    // Partidos fijos (1ro vs 2do directos)
+    {id:'P73', date:'Jun 28', label:'P73', teamA:{type:'2nd',group:'A'}, teamB:{type:'2nd',group:'B'}, venue:'Los Ángeles'},
+    {id:'P74', date:'Jun 29', label:'P74', teamA:{type:'1st',group:'E'}, teamB:{type:'3rd',groups:'ABCDF'}, venue:'Boston'},
+    {id:'P75', date:'Jun 29', label:'P75', teamA:{type:'1st',group:'F'}, teamB:{type:'2nd',group:'C'}, venue:'Monterrey'},
+    {id:'P76', date:'Jun 29', label:'P76', teamA:{type:'1st',group:'E'}, teamB:{type:'2nd',group:'F'}, venue:'Houston'},
+    {id:'P77', date:'Jun 30', label:'P77', teamA:{type:'1st',group:'I'}, teamB:{type:'3rd',groups:'CDFGH'}, venue:'Nueva York'},
+    {id:'P78', date:'Jun 30', label:'P78', teamA:{type:'2nd',group:'E'}, teamB:{type:'2nd',group:'I'}, venue:'Dallas'},
+    {id:'P79', date:'Jun 30', label:'P79', teamA:{type:'1st',group:'A'}, teamB:{type:'3rd',groups:'CEFHI'}, venue:'Cd. México'},
+    {id:'P80', date:'Jul 1',  label:'P80', teamA:{type:'1st',group:'L'}, teamB:{type:'3rd',groups:'EHIJK'}, venue:'Atlanta'},
+    {id:'P81', date:'Jul 1',  label:'P81', teamA:{type:'1st',group:'D'}, teamB:{type:'3rd',groups:'BEFIJ'}, venue:'San Francisco'},
+    {id:'P82', date:'Jul 1',  label:'P82', teamA:{type:'1st',group:'G'}, teamB:{type:'3rd',groups:'AEHIJ'}, venue:'Seattle'},
+    {id:'P83', date:'Jul 2',  label:'P83', teamA:{type:'2nd',group:'K'}, teamB:{type:'2nd',group:'L'}, venue:'Toronto'},
+    {id:'P84', date:'Jul 2',  label:'P84', teamA:{type:'1st',group:'H'}, teamB:{type:'2nd',group:'J'}, venue:'Los Ángeles'},
+    {id:'P85', date:'Jul 2',  label:'P85', teamA:{type:'1st',group:'B'}, teamB:{type:'3rd',groups:'EFGIJ'}, venue:'Vancouver'},
+    {id:'P86', date:'Jul 3',  label:'P86', teamA:{type:'1st',group:'J'}, teamB:{type:'2nd',group:'H'}, venue:'Miami'},
+    {id:'P87', date:'Jul 3',  label:'P87', teamA:{type:'1st',group:'K'}, teamB:{type:'3rd',groups:'DEJIL'}, venue:'Kansas City'},
+    {id:'P88', date:'Jul 3',  label:'P88', teamA:{type:'2nd',group:'D'}, teamB:{type:'2nd',group:'G'}, venue:'Dallas'},
+];
+
+function resolveTeam(slot, standings, best3rds) {
+    if (slot.type === '1st') {
+        const s = standings[slot.group];
+        return s && s[0] ? s[0][0] : '?';
+    }
+    if (slot.type === '2nd') {
+        const s = standings[slot.group];
+        return s && s[1] ? s[1][0] : '?';
+    }
+    if (slot.type === '3rd') {
+        // Find the best 3rd from the specified groups
+        const eligible = best3rds.filter(t => slot.groups.includes(t.group));
+        return eligible.length > 0 ? eligible[0].team : '?';
+    }
+    return '?';
+}
+
+function showElimView(mode) {
+    document.getElementById('btnElimMi').className = 'toggle-btn' + (mode==='miPolla'?' toggle-active':'');
+    document.getElementById('btnElimReal').className = 'toggle-btn' + (mode==='real'?' toggle-active':'');
+    renderEliminatorias(mode);
+}
+
+function renderEliminatorias(mode) {
+    const users = getUsers();
+    const matchList = mode==='miPolla'
+        ? (users[currentUser]?.matches || [])
+        : getReal().filter(m => m.gh!==null && m.gh!==undefined);
+
+    // Build standings for all groups
+    const standings = {};
+    for (const g in GROUPS) standings[g] = calcStandings(g, matchList);
+
+    // Get best 3rds
+    const best3rds = getBest3rds(matchList);
+
+    let h = `<div style="margin-bottom:12px;padding:10px 14px;background:#1a2540;border-radius:6px;font-size:0.82em;color:#888">
+        <strong style="color:#f5c518">Criterios de desempate:</strong>
+        1. Puntos &nbsp;|&nbsp; 2. Diferencia de goles &nbsp;|&nbsp; 3. Goles anotados &nbsp;|&nbsp; 4. H2H &nbsp;|&nbsp; 5. Fair Play &nbsp;|&nbsp; 6. Ranking FIFA
+    </div>`;
+
+    h += `<div style="font-family:'Bebas Neue',cursive;font-size:1.2em;letter-spacing:2px;color:#f5c518;margin-bottom:12px">🏟️ DIECISEISAVOS DE FINAL</div>`;
+    h += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px">`;
+
+    for (const match of BRACKET) {
+        const teamA = resolveTeam(match.teamA, standings, best3rds);
+        const teamB = resolveTeam(match.teamB, standings, best3rds);
+        const labelA = match.teamA.type==='1st' ? `1º Grupo ${match.teamA.group}` :
+                       match.teamA.type==='2nd' ? `2º Grupo ${match.teamA.group}` :
+                       `Mejor 3º (${match.teamA.groups})`;
+        const labelB = match.teamB.type==='1st' ? `1º Grupo ${match.teamB.group}` :
+                       match.teamB.type==='2nd' ? `2º Grupo ${match.teamB.group}` :
+                       `Mejor 3º (${match.teamB.groups})`;
+        const unknownA = teamA === '?';
+        const unknownB = teamB === '?';
+
+        h += `<div style="background:#0f1428;border-radius:8px;padding:12px 14px;border-left:3px solid #1e2a3a">
+            <div style="display:flex;justify-content:space-between;font-size:0.75em;color:#555;margin-bottom:8px">
+                <span style="color:#f5c518;font-weight:bold">${match.label}</span>
+                <span>📅 ${match.date} · ${match.venue}</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center">
+                <div style="text-align:right">
+                    <div style="font-size:0.75em;color:#555;margin-bottom:2px">${labelA}</div>
+                    <div style="font-weight:bold;font-size:0.95em;color:${unknownA?'#555':'#fff'}">${flag(teamA)} ${teamA}</div>
+                </div>
+                <div style="color:#555;font-size:1em;font-weight:bold;padding:0 4px">vs</div>
+                <div style="text-align:left">
+                    <div style="font-size:0.75em;color:#555;margin-bottom:2px">${labelB}</div>
+                    <div style="font-weight:bold;font-size:0.95em;color:${unknownB?'#555':'#fff'}">${teamB} ${flag(teamB)}</div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    h += '</div>';
+
+    // Note about 3rds
+    if (best3rds.length < 8) {
+        h += `<p style="margin-top:16px;color:#666;font-size:0.85em">⚠️ Los mejores terceros se determinan cuando todos los grupos tengan partidos ingresados.</p>`;
+    }
+
+    document.getElementById('elimContainer').innerHTML = h;
 }
 </script>
 </body>
