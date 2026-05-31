@@ -1251,17 +1251,39 @@ function showRealView(view) {
 function renderRanking() {
     const users = getUsers();
     const real = getReal();
+    const elimResults = getElimResults();
+    const allUserPicks = JSON.parse(localStorage.getItem('wc2026_userpicks')||'{}');
+    const allElimMatches = getAllElimMatches();
     const ranking = [];
+
     for (const u in users) {
-        const um=users[u].matches||[];
-        let pts=0;
+        // Phase groups points
+        const um = users[u].matches || [];
+        let pts = 0;
         for (const m of ALL_MATCHES) {
-            const um2=um.find(x=>x.id===m.id);
-            const rm=real.find(x=>x.id===m.id);
-            if(um2&&rm?.gh!==null&&rm?.ga!==null&&rm?.gh!==undefined&&rm?.ga!==undefined)
-                pts+=calcPoints(rm.gh,rm.ga,um2.gh,um2.ga);
+            const um2 = um.find(x=>x.id===m.id);
+            const rm = real.find(x=>x.id===m.id);
+            if (um2 && rm?.gh!==null && rm?.ga!==null && rm?.gh!==undefined && rm?.ga!==undefined)
+                pts += calcPoints(rm.gh, rm.ga, um2.gh, um2.ga);
         }
-        ranking.push({username:u,points:pts});
+        // Elimination picks points
+        const userElimPicks = allUserPicks[u] || {};
+        for (const id in userElimPicks) {
+            const pick = userElimPicks[id];
+            const res = elimResults[id];
+            if (!res || res.ghA===undefined || res.ghA==='' || res.ghB===undefined || res.ghB==='') continue;
+            if (pick.ghA===undefined || pick.ghB===undefined) continue;
+            // Inline points calc (same as calcPoints)
+            const rA=Number(res.ghA), rB=Number(res.ghB), pA=Number(pick.ghA), pB=Number(pick.ghB);
+            let epts=0;
+            if (pA===rA) epts++;
+            if (pB===rB) epts++;
+            const rw=rA>rB?1:rA<rB?-1:0, pw=pA>pB?1:pA<pB?-1:0;
+            if (rw===pw) epts+=2;
+            if (pA===rA&&pB===rB) epts+=3;
+            pts += epts;
+        }
+        ranking.push({username:u, points:pts});
     }
     ranking.sort((a,b)=>b.points-a.points);
     const medals=['🥇','🥈','🥉'];
@@ -1795,7 +1817,7 @@ function renderUserElimPicks() {
                         <div style="font-weight:bold;font-size:0.88em;color:${teamB==='?'?'#555':'#fff'}">${teamB} ${flag(teamB)}</div>
                     </div>
                 </div>
-                ${hasReal?`<div style="text-align:center;font-size:0.75em;color:#888">Real: <strong style="color:#f5c518">${realGhA}-${realGhB}</strong></div>`:''}
+
             </div>`;
         }
         h += '</div></div>';
