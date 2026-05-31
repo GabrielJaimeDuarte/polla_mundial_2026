@@ -485,7 +485,11 @@
 
     <div id="resultadosReales" class="tab-content">
         <div class="section-title">Resultados Reales</div>
-        <div class="groups-grid" id="realResultsContainer"></div>
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+            <button onclick="showRealView('resultados')" id="btnResultados" class="toggle-btn toggle-active">📋 Resultados</button>
+            <button onclick="showRealView('posiciones')" id="btnPosiciones" class="toggle-btn">📊 Posiciones</button>
+        </div>
+        <div id="realResultsContainer"></div>
     </div>
 
     <div id="clasificacion" class="tab-content">
@@ -1147,18 +1151,7 @@ function renderMy3rd() {
 
 function renderRealResults() {
     const real = getReal();
-
-    // ── TOGGLE BUTTONS ──
-    let html = `
-        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-            <button onclick="showRealView('resultados')" id="btnResultados"
-                class="toggle-btn toggle-active">📋 Resultados</button>
-            <button onclick="showRealView('posiciones')" id="btnPosiciones"
-                class="toggle-btn">📊 Posiciones</button>
-        </div>`;
-
-    // ── RESULTADOS ──
-    html += '<div id="viewResultados" class="groups-grid">';
+    let html = '<div id="viewResultados" class="groups-grid">';
     for (const g in GROUPS) {
         html += `<div class="group-card"><div class="group-card-header"><strong>GRUPO ${g}</strong></div>
         <table class="standings"><thead><tr><th>Partido</th><th>Resultado</th></tr></thead><tbody>`;
