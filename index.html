@@ -630,7 +630,7 @@
                 <button class="btn-save" onclick="saveRealResults()">&#128190; Guardar Resultados</button>
                 <button class="btn-sec" onclick="openEmailConfig()">&#9881;&#65039; Config Email</button>
                 <button class="btn-sec" onclick="resetAllUserMatches()" style="border-color:#f44336;color:#f44336">🗑️ Limpiar pronósticos</button>
-                <button class="btn-sec" onclick="toggleFairPlayPanel()">🟨 Fair Play</button>
+
             </div>
         </div>
 
@@ -644,10 +644,10 @@
             <h3>🔓 Habilitar rondas para picks de usuarios</h3>
             <div id="adminElimConfigContainer"></div>
         </div>
-        <div class="admin-card" id="fairPlayPanel" style="display:none;margin-top:16px">
+        <div class="admin-card" id="fairPlayPanel" style="margin-top:16px">
             <h3>🟨 Fair Play — Tarjetas</h3>
             <p style="color:#888;font-size:0.85em;margin-bottom:16px">
-                Criterio de desempate 4. Sistema FIFA: Amarilla=1pt, Amarilla+Roja=4pts, Roja directa=3pts. Menor puntaje = mejor posición.
+                Ingresa las tarjetas acumuladas de cada selección. Criterio de desempate 4 (FIFA): Amarilla=1pt, Amarilla+Roja=4pts, Roja directa=3pts. Menor puntaje = mejor posición.
             </p>
             <div id="fairPlayContainer"></div>
             <button class="btn-save" onclick="saveFairPlay()" style="margin-top:12px">💾 Guardar Fair Play</button>
@@ -1029,7 +1029,7 @@ function init() {
     renderRanking();
     renderEliminatorias('miPolla');
     renderFairPlayPublic();
-    if (isAdmin) { renderAllForecasts(); renderAdminRealResults(); renderAdminElimResults(); renderAdminElimConfig(); renderUserList(); }
+    if (isAdmin) { renderAllForecasts(); renderAdminRealResults(); renderAdminElimResults(); renderAdminElimConfig(); renderUserList(); renderFairPlayAdmin(); }
 }
 
 function showSubTab(subId, btn) {
@@ -1882,15 +1882,17 @@ function renderEliminatorias(mode) {
             if (match.teamA&&typeof match.teamA==='object') {
                 // Use admin-set teams if available, otherwise calculate 1st/2nd, show ? for 3rd
                 const adminRes = elimResults[match.id]||{};
-                if (adminRes.teamA) {
-                    teamA = adminRes.teamA;
+                // For 1st/2nd: auto-calculate from standings
+                // For 3rd: only show if admin manually set it (manualA/manualB flag)
+                if (match.teamA.type==='3rd') {
+                    teamA = adminRes.manualA || '?';
                 } else {
-                    teamA = resolveTeam(match.teamA,standings,best3rds,elimResults);
+                    teamA = resolveTeam(match.teamA,standings,best3rds,elimResults) || '?';
                 }
-                if (adminRes.teamB) {
-                    teamB = adminRes.teamB;
+                if (match.teamB.type==='3rd') {
+                    teamB = adminRes.manualB || '?';
                 } else {
-                    teamB = resolveTeam(match.teamB,standings,best3rds,elimResults);
+                    teamB = resolveTeam(match.teamB,standings,best3rds,elimResults) || '?';
                 }
                 labelA=getLabel(match.teamA); labelB=getLabel(match.teamB);
             } else {
@@ -2131,6 +2133,10 @@ function clearAdminElimResult(id) {
     if (results[id]) {
         delete results[id].ghA;
         delete results[id].ghB;
+        delete results[id].manualA;
+        delete results[id].manualB;
+        delete results[id].teamA;
+        delete results[id].teamB;
     }
     setElimResults(results);
     showToast('✅ Resultado borrado');
@@ -2159,25 +2165,16 @@ function saveAdminElimResults() {
                 if (match) {
                     const elimRes = getElimResults();
                     if (match.teamA && typeof match.teamA === 'object') {
-                        // Check for manually entered team names (3rd place slots)
                         const tAEl = document.getElementById('elim_tA_'+id);
                         const tBEl = document.getElementById('elim_tB_'+id);
-                        if (tAEl && tAEl.value.trim()) results[id].teamA = tAEl.value.trim();
-                        if (tBEl && tBEl.value.trim()) results[id].teamB = tBEl.value.trim();
-                        // For 1st/2nd slots, auto-resolve from standings if not manually set
-                        if (!results[id].teamA && match.teamA.type !== '3rd') {
-                            const users = getUsers();
-                            const ml = users[currentUser]?.matches||[];
-                            const standings={};
-                            for (const g in GROUPS) standings[g]=calcStandings(g,ml);
-                            results[id].teamA = resolveTeam(match.teamA,standings,[],results);
+                        // 3rd place: use manual text input
+                        if (match.teamA.type==='3rd' && tAEl && tAEl.value.trim()) {
+                            results[id].manualA = tAEl.value.trim();
+                            results[id].teamA = tAEl.value.trim();
                         }
-                        if (!results[id].teamB && match.teamB.type !== '3rd') {
-                            const users = getUsers();
-                            const ml = users[currentUser]?.matches||[];
-                            const standings={};
-                            for (const g in GROUPS) standings[g]=calcStandings(g,ml);
-                            results[id].teamB = resolveTeam(match.teamB,standings,[],results);
+                        if (match.teamB.type==='3rd' && tBEl && tBEl.value.trim()) {
+                            results[id].manualB = tBEl.value.trim();
+                            results[id].teamB = tBEl.value.trim();
                         }
                     } else {
                         // Later rounds - resolve from previous results
