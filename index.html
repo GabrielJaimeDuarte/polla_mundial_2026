@@ -1197,9 +1197,9 @@ function renderMyMatches() {
                     <div class="match-row">
                         <div class="team-left"><span>${m.home}</span>${flag(m.home)}</div>
                         <div class="score-box">
-                            <input type="number" class="score-inp" id="gh_${m.id}" value="${gh}" placeholder="?" min="0">
+                            <input type="number" class="score-inp" id="gh_${m.id}" value="${gh}" placeholder="?" min="0" max="99" step="1" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,2)">
                             <span class="score-sep">-</span>
-                            <input type="number" class="score-inp" id="ga_${m.id}" value="${ga}" placeholder="?" min="0">
+                            <input type="number" class="score-inp" id="ga_${m.id}" value="${ga}" placeholder="?" min="0" max="99" step="1" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,2)">
                         </div>
                         <div class="team-right">${flag(m.away)}<span>${m.away}</span></div>
                     </div>
@@ -1454,9 +1454,9 @@ function renderAdminRealResults() {
             const ga=(r?.ga!==null&&r?.ga!==undefined)?r.ga:'';
             h+=`<div class="admin-match-row">
                 <span>${flag(m.home)} ${m.home}</span>
-                <input type="number" class="admin-inp" id="real_gh_${m.id}" value="${gh}" placeholder="?" min="0">
+                <input type="number" class="admin-inp" id="real_gh_${m.id}" value="${gh}" placeholder="?" min="0" max="99" step="1" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,2)">
                 <span style="text-align:center;color:#555">-</span>
-                <input type="number" class="admin-inp" id="real_ga_${m.id}" value="${ga}" placeholder="?" min="0">
+                <input type="number" class="admin-inp" id="real_ga_${m.id}" value="${ga}" placeholder="?" min="0" max="99" step="1" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,2)">
                 <span>${flag(m.away)} ${m.away}</span>
             </div>`;
         }
@@ -1727,8 +1727,17 @@ function getBest3rds(matchList) {
         if (b.stats.pts !== a.stats.pts) return b.stats.pts - a.stats.pts;
         const dga=a.stats.gf-a.stats.ga, dgb=b.stats.gf-b.stats.ga;
         if (dgb !== dga) return dgb - dga;
-        return b.stats.gf - a.stats.gf;
+        if (b.stats.gf !== a.stats.gf) return b.stats.gf - a.stats.gf;
+        // Fair Play tiebreaker
+        const fp = getFairPlay();
+        const fpA = fp[a.team]||{y:0,yr:0,r:0};
+        const fpB = fp[b.team]||{y:0,yr:0,r:0};
+        const scoreA = (fpA.y||0)*1 + (fpA.yr||0)*4 + (fpA.r||0)*3;
+        const scoreB = (fpB.y||0)*1 + (fpB.yr||0)*4 + (fpB.r||0)*3;
+        return scoreA - scoreB; // less cards = better
     });
+    return thirds.slice(0,8);
+});
     return thirds.slice(0,8);
 }
 
@@ -1967,11 +1976,13 @@ function renderUserElimPicks(freshPicks) {
                     <div style="text-align:center">
                         ${isOpen?`
                         <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
-                            <input type="number" id="upick_ghA_${id}" value="${pickGhA}" placeholder="?" min="0"
+                            <input type="number" id="upick_ghA_${id}" value="${pickGhA}" placeholder="?" min="0" max="99" step="1"
+                                oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,2)"
                                 style="width:42px;padding:5px 2px;background:#161b2e;border:1px solid #2a3a5a;border-radius:5px;
                                 color:#f5c518;text-align:center;font-size:1.1em;font-weight:bold;font-family:'Bebas Neue',cursive">
                             <span style="color:#555">-</span>
-                            <input type="number" id="upick_ghB_${id}" value="${pickGhB}" placeholder="?" min="0"
+                            <input type="number" id="upick_ghB_${id}" value="${pickGhB}" placeholder="?" min="0" max="99" step="1"
+                                oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,2)"
                                 style="width:42px;padding:5px 2px;background:#161b2e;border:1px solid #2a3a5a;border-radius:5px;
                                 color:#f5c518;text-align:center;font-size:1.1em;font-weight:bold;font-family:'Bebas Neue',cursive">
 
