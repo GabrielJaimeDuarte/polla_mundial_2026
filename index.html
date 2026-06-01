@@ -1728,8 +1728,14 @@ function resolveTeam(slot, standings, best3rds) {
     if (slot.type==='1st') { const s=standings[slot.group]; return s&&s[0]?s[0][0]:'?'; }
     if (slot.type==='2nd') { const s=standings[slot.group]; return s&&s[1]?s[1][0]:'?'; }
     if (slot.type==='3rd') {
-        const eligible = best3rds.filter(t=>slot.groups.includes(t.group));
-        return eligible.length>0?eligible[0].team:'?';
+        // Use global assignment to avoid same team in multiple slots
+        if (!window._assignedThirds) window._assignedThirds = new Set();
+        const eligible = best3rds.filter(t=>slot.groups.includes(t.group) && !window._assignedThirds.has(t.team));
+        if (eligible.length > 0) {
+            window._assignedThirds.add(eligible[0].team);
+            return eligible[0].team;
+        }
+        return '?';
     }
     return '?';
 }
@@ -1761,6 +1767,7 @@ function getMatchTeams(match, elimResults, forceMatchList) {
         const standings = {};
         for (const g in GROUPS) standings[g] = calcStandings(g, ml);
         const best3rds = getBest3rds(ml);
+        // Don't reset _assignedThirds here - use existing assignment
         teamA = resolveTeam(match.teamA, standings, best3rds);
         teamB = resolveTeam(match.teamB, standings, best3rds);
     } else {
@@ -1843,6 +1850,7 @@ function renderEliminatorias(mode) {
     for (const g in GROUPS) standings[g]=calcStandings(g,matchList);
     const best3rds = getBest3rds(matchList);
     const elimResults = getElimResults();
+    window._assignedThirds = new Set(); // reset before assigning
 
     function getLabel(slot) {
         if (!slot||typeof slot!=='object') return slot||'';
@@ -1896,6 +1904,7 @@ function renderUserElimPicks(freshPicks) {
     // Always read fresh matchList from localStorage
     const freshUsers = JSON.parse(localStorage.getItem('wc2026_users')||'{}');
     const matchList = freshUsers[currentUser]?.matches || [];
+    window._assignedThirds = new Set(); // reset before rendering
 
     let h = `<div style="margin-bottom:14px;padding:8px 14px;background:#1a2540;border-radius:6px;font-size:0.82em;color:#888">
         ✏️ <strong style="color:#f5c518">Predice los marcadores de eliminatorias.</strong>
@@ -2180,5 +2189,79 @@ function toggleElimRound(key) {
 }
 </script>
 
+
+<script>
+// ── FAIR PLAY ──
+function toggleFairPlayPanel() {
+    const panel = document.getElementById('fairPlayPanel');
+    if (!panel) return;
+    if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+        renderFairPlayAdmin();
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+function renderFairPlayAdmin() {
+    const fp = getFairPlay();
+    let h = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px">';
+
+    for (const g in GROUPS) {
+        h += `<div style="background:#161b2e;border-radius:8px;padding:12px">
+            <div style="font-family:'Bebas Neue',cursive;color:#f5c518;letter-spacing:2px;margin-bottom:10px;font-size:0.95em">GRUPO ${g}</div>`;
+        for (const team of GROUPS[g]) {
+            const key = team.replace(/[^a-zA-Z0-9]/g,'_');
+            const data = fp[team] || {y:0, yr:0, r:0};
+            h += `<div style="display:grid;grid-template-columns:1fr 55px 55px 55px;gap:6px;align-items:center;margin-bottom:8px;font-size:0.85em">
+                <div>${flag(team)} ${team}</div>
+                <div style="text-align:center">
+                    <div style="font-size:0.7em;color:#f5c518;margin-bottom:2px">🟨</div>
+                    <input type="number" id="fp_y_${key}" value="${data.y||0}" min="0"
+                        style="width:100%;padding:4px;background:#0f1428;border:1px solid #2a3a5a;border-radius:4px;color:#f5c518;text-align:center;font-size:0.9em">
+                </div>
+                <div style="text-align:center">
+                    <div style="font-size:0.7em;color:#ff9800;margin-bottom:2px">🟨🟥</div>
+                    <input type="number" id="fp_yr_${key}" value="${data.yr||0}" min="0"
+                        style="width:100%;padding:4px;background:#0f1428;border:1px solid #2a3a5a;border-radius:4px;color:#ff9800;text-align:center;font-size:0.9em">
+                </div>
+                <div style="text-align:center">
+                    <div style="font-size:0.7em;color:#f44336;margin-bottom:2px">🟥</div>
+                    <input type="number" id="fp_r_${key}" value="${data.r||0}" min="0"
+                        style="width:100%;padding:4px;background:#0f1428;border:1px solid #2a3a5a;border-radius:4px;color:#f44336;text-align:center;font-size:0.9em">
+                </div>
+            </div>`;
+        }
+        h += '</div>';
+    }
+    h += `</div>
+    <div style="margin-top:12px;font-size:0.8em;color:#666">
+        🟨 Amarilla = 1pt &nbsp;|&nbsp; 🟨🟥 Amarilla+Roja = 4pts &nbsp;|&nbsp; 🟥 Roja directa = 3pts
+    </div>`;
+
+    document.getElementById('fairPlayContainer').innerHTML = h;
+}
+
+function saveFairPlay() {
+    const fp = {};
+    for (const g in GROUPS) {
+        for (const team of GROUPS[g]) {
+            const key = team.replace(/[^a-zA-Z0-9]/g,'_');
+            const yEl  = document.getElementById('fp_y_'+key);
+            const yrEl = document.getElementById('fp_yr_'+key);
+            const rEl  = document.getElementById('fp_r_'+key);
+            if (!yEl) continue;
+            const y  = parseInt(yEl.value  || 0);
+            const yr = parseInt(yrEl.value || 0);
+            const r  = parseInt(rEl.value  || 0);
+            if (y>0 || yr>0 || r>0) fp[team] = {y, yr, r};
+        }
+    }
+    setFairPlay(fp);
+    showToast('✅ Fair Play guardado');
+    renderMyStandings();
+    renderRealResults();
+}
+</script>
 </body>
 </html>
