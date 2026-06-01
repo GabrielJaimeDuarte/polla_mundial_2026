@@ -504,6 +504,12 @@
         <div id="elimContainer"></div>
     </div>
 
+    <div id="fairPlayTab" class="tab-content">
+        <div class="section-title">🟨 Fair Play</div>
+        <p style="color:#666;font-size:0.85em;margin-bottom:16px">Tarjetas acumuladas. Criterio de desempate 4 (después de Pts, DG y GF).</p>
+        <div id="fairPlayPublicContainer"></div>
+    </div>
+
     <div id="clasificacion" class="tab-content">
         <div class="section-title">&#127942; Clasificaci&oacute;n General</div>
         <div id="rankingContainer"></div>
@@ -995,6 +1001,7 @@ function init() {
         <button class="tab-btn" onclick="switchTab('resultadosReales',this)">Resultados Reales</button>
         <button class="tab-btn" onclick="switchTab('eliminatorias',this)">🏟️ Eliminatorias</button>
         <button class="tab-btn" onclick="switchTab('clasificacion',this)">🏆 Clasificación</button>
+        <button class="tab-btn" onclick="switchTab('fairPlayTab',this)">🟨 Fair Play</button>
     `;
     if (isAdmin) {
         tabs += `<button class="tab-btn" onclick="switchTab('adminPanel',this)">📋 Ver Pronósticos</button>`;
@@ -1021,6 +1028,7 @@ function init() {
     renderRealResults();
     renderRanking();
     renderEliminatorias('miPolla');
+    renderFairPlayPublic();
     if (isAdmin) { renderAllForecasts(); renderAdminRealResults(); renderAdminElimResults(); renderAdminElimConfig(); renderUserList(); }
 }
 
@@ -1724,18 +1732,13 @@ function getBest3rds(matchList) {
     return thirds.slice(0,8);
 }
 
-function resolveTeam(slot, standings, best3rds) {
+function resolveTeam(slot, standings, best3rds, elimResults) {
     if (slot.type==='1st') { const s=standings[slot.group]; return s&&s[0]?s[0][0]:'?'; }
     if (slot.type==='2nd') { const s=standings[slot.group]; return s&&s[1]?s[1][0]:'?'; }
     if (slot.type==='3rd') {
-        // Use global assignment to avoid same team in multiple slots
-        if (!window._assignedThirds) window._assignedThirds = new Set();
-        const eligible = best3rds.filter(t=>slot.groups.includes(t.group) && !window._assignedThirds.has(t.team));
-        if (eligible.length > 0) {
-            window._assignedThirds.add(eligible[0].team);
-            return eligible[0].team;
-        }
-        return '?';
+        // Check if admin manually set this team in elimResults
+        // (admin sets it via the bracket admin panel)
+        return '?'; // Always show ? for 3rds - admin fills manually
     }
     return '?';
 }
@@ -1877,13 +1880,19 @@ function renderEliminatorias(mode) {
         for (const match of sec.matches) {
             let teamA,teamB,labelA,labelB;
             if (match.teamA&&typeof match.teamA==='object') {
-                teamA=resolveTeam(match.teamA,standings,best3rds);
-                teamB=resolveTeam(match.teamB,standings,best3rds);
+                // Use admin-set teams if available, otherwise calculate 1st/2nd, show ? for 3rd
+                const adminRes = elimResults[match.id]||{};
+                if (adminRes.teamA) {
+                    teamA = adminRes.teamA;
+                } else {
+                    teamA = resolveTeam(match.teamA,standings,best3rds,elimResults);
+                }
+                if (adminRes.teamB) {
+                    teamB = adminRes.teamB;
+                } else {
+                    teamB = resolveTeam(match.teamB,standings,best3rds,elimResults);
+                }
                 labelA=getLabel(match.teamA); labelB=getLabel(match.teamB);
-                // store for later resolution
-                if(!elimResults[match.id]) elimResults[match.id]={};
-                elimResults[match.id].teamA=teamA;
-                elimResults[match.id].teamB=teamB;
             } else {
                 teamA=resolveElimTeam(match.teamA,elimResults)||match.teamA;
                 teamB=resolveElimTeam(match.teamB,elimResults)||match.teamB;
@@ -2074,15 +2083,39 @@ function renderAdminElimResults() {
                 const labelB = match.teamB?.group?`${match.teamB.type==='1st'?'1º':'2º'} Grp ${match.teamB.group}`:(match.teamB?.groups?`3º (${match.teamB.groups})`:match.teamB);
                 const tA = res.teamA||labelA;
                 const tB = res.teamB||labelB;
-                h += `<div style="display:grid;grid-template-columns:2fr 70px 16px 70px 2fr auto;gap:8px;align-items:center;margin-bottom:10px;font-size:0.9em;padding:0 4px">
-                    <span>${flag(tA)||''} <strong>${tA}</strong></span>
-                    <input type="number" id="elim_ghA_${id}" value="${ghA}" placeholder="?" min="0" class="admin-inp">
-                    <span style="text-align:center;color:#555">-</span>
-                    <input type="number" id="elim_ghB_${id}" value="${ghB}" placeholder="?" min="0" class="admin-inp">
-                    <span><strong>${tB}</strong> ${flag(tB)||''}</span>
+                // Check if this slot has a 3rd-place team that needs manual input
+                const hasThirdA = match.teamA && typeof match.teamA==='object' && match.teamA.type==='3rd';
+                const hasThirdB = match.teamB && typeof match.teamB==='object' && match.teamB.type==='3rd';
+                h += `<div style="margin-bottom:12px;padding:8px;background:#0a0f1e;border-radius:6px;font-size:0.88em">
+                    <div style="color:#f5c518;font-size:0.75em;margin-bottom:6px;font-weight:bold">${id}</div>
+                    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:8px">
+                        <div>
+                            ${hasThirdA
+                                ? `<div style="font-size:0.7em;color:#ff9800;margin-bottom:2px">✏️ 3º (${match.teamA.groups})</div>
+                                   <input type="text" id="elim_tA_${id}" value="${res.teamA&&res.teamA!==labelA?res.teamA:''}" placeholder="Equipo A"
+                                    style="width:100%;padding:5px 8px;background:#161b2e;border:1px solid #ff9800;border-radius:4px;color:#fff;font-size:0.88em">`
+                                : `<div style="font-size:0.7em;color:#555;margin-bottom:2px">${labelA}</div>
+                                   <strong>${flag(tA)} ${tA}</strong>`
+                            }
+                        </div>
+                        <div style="text-align:center">
+                            <input type="number" id="elim_ghA_${id}" value="${ghA}" placeholder="?" min="0" class="admin-inp" style="width:52px">
+                            <span style="color:#555"> - </span>
+                            <input type="number" id="elim_ghB_${id}" value="${ghB}" placeholder="?" min="0" class="admin-inp" style="width:52px">
+                        </div>
+                        <div style="text-align:right">
+                            ${hasThirdB
+                                ? `<div style="font-size:0.7em;color:#ff9800;margin-bottom:2px">✏️ 3º (${match.teamB.groups})</div>
+                                   <input type="text" id="elim_tB_${id}" value="${res.teamB&&res.teamB!==labelB?res.teamB:''}" placeholder="Equipo B"
+                                    style="width:100%;padding:5px 8px;background:#161b2e;border:1px solid #ff9800;border-radius:4px;color:#fff;font-size:0.88em;text-align:right">`
+                                : `<div style="font-size:0.7em;color:#555;margin-bottom:2px">${labelB}</div>
+                                   <strong>${tB} ${flag(tB)}</strong>`
+                            }
+                        </div>
+                    </div>
                     <button onclick="clearAdminElimResult('${id}')"
-                        style="padding:4px 8px;background:transparent;border:1px solid #f44336;border-radius:4px;color:#f44336;cursor:pointer;font-size:0.8em;white-space:nowrap">
-                        ✕ Borrar
+                        style="padding:3px 10px;background:transparent;border:1px solid #f44336;border-radius:4px;color:#f44336;cursor:pointer;font-size:0.75em">
+                        ✕ Borrar resultado
                     </button>
                 </div>`;
             }
@@ -2126,14 +2159,26 @@ function saveAdminElimResults() {
                 if (match) {
                     const elimRes = getElimResults();
                     if (match.teamA && typeof match.teamA === 'object') {
-                        // 16avos - store resolved names from current standings
-                        const users = getUsers();
-                        const ml = users[currentUser]?.matches||[];
-                        const standings={};
-                        for (const g in GROUPS) standings[g]=calcStandings(g,ml);
-                        const best3rds=getBest3rds(ml);
-                        results[id].teamA = resolveTeam(match.teamA,standings,best3rds);
-                        results[id].teamB = resolveTeam(match.teamB,standings,best3rds);
+                        // Check for manually entered team names (3rd place slots)
+                        const tAEl = document.getElementById('elim_tA_'+id);
+                        const tBEl = document.getElementById('elim_tB_'+id);
+                        if (tAEl && tAEl.value.trim()) results[id].teamA = tAEl.value.trim();
+                        if (tBEl && tBEl.value.trim()) results[id].teamB = tBEl.value.trim();
+                        // For 1st/2nd slots, auto-resolve from standings if not manually set
+                        if (!results[id].teamA && match.teamA.type !== '3rd') {
+                            const users = getUsers();
+                            const ml = users[currentUser]?.matches||[];
+                            const standings={};
+                            for (const g in GROUPS) standings[g]=calcStandings(g,ml);
+                            results[id].teamA = resolveTeam(match.teamA,standings,[],results);
+                        }
+                        if (!results[id].teamB && match.teamB.type !== '3rd') {
+                            const users = getUsers();
+                            const ml = users[currentUser]?.matches||[];
+                            const standings={};
+                            for (const g in GROUPS) standings[g]=calcStandings(g,ml);
+                            results[id].teamB = resolveTeam(match.teamB,standings,[],results);
+                        }
                     } else {
                         // Later rounds - resolve from previous results
                         const tA = resolveElimTeam(match.teamA, results);
@@ -2191,7 +2236,51 @@ function toggleElimRound(key) {
 
 
 <script>
-// ── FAIR PLAY ──
+// ── FAIR PLAY PUBLIC ──
+function renderFairPlayPublic() {
+    const fp = getFairPlay();
+    const container = document.getElementById('fairPlayPublicContainer');
+    if (!container) return;
+
+    // Check if any data exists
+    const hasData = Object.keys(fp).length > 0;
+    if (!hasData) {
+        container.innerHTML = '<p style="color:#555;text-align:center;padding:40px">El admin aún no ha cargado datos de Fair Play.</p>';
+        return;
+    }
+
+    let h = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px">';
+    for (const g in GROUPS) {
+        h += `<div class="group-card">
+            <div class="group-card-header"><strong>GRUPO ${g}</strong></div>
+            <table class="standings">
+            <thead><tr>
+                <th style="text-align:left">SELECCIÓN</th>
+                <th>🟨</th><th>🟨🟥</th><th>🟥</th><th>TOTAL</th>
+            </tr></thead><tbody>`;
+        for (const team of GROUPS[g]) {
+            const d = fp[team] || {y:0,yr:0,r:0};
+            const score = (d.y||0)*1 + (d.yr||0)*4 + (d.r||0)*3;
+            h += `<tr>
+                <td><div class="team-cell">${flag(team)}<span>${team}</span></div></td>
+                <td style="text-align:center;color:#f5c518">${d.y||0}</td>
+                <td style="text-align:center;color:#ff9800">${d.yr||0}</td>
+                <td style="text-align:center;color:#f44336">${d.r||0}</td>
+                <td style="text-align:center;font-weight:bold;color:${score>0?'#f44336':'#888'}">${score}</td>
+            </tr>`;
+        }
+        h += '</tbody></table></div>';
+    }
+    h += '</div>';
+    h += `<div style="margin-top:16px;padding:10px 14px;background:#1a2540;border-radius:6px;font-size:0.8em;color:#888">
+        🟨 Amarilla = 1pt &nbsp;|&nbsp; 🟨🟥 Amarilla+Roja = 4pts &nbsp;|&nbsp; 🟥 Roja directa = 3pts &nbsp;|&nbsp;
+        <strong style="color:#f5c518">Menor TOTAL = mejor posición de desempate</strong>
+    </div>`;
+
+    container.innerHTML = h;
+}
+
+// ── FAIR PLAY ADMIN ──
 function toggleFairPlayPanel() {
     const panel = document.getElementById('fairPlayPanel');
     if (!panel) return;
@@ -2261,6 +2350,7 @@ function saveFairPlay() {
     showToast('✅ Fair Play guardado');
     renderMyStandings();
     renderRealResults();
+    renderFairPlayPublic();
 }
 </script>
 </body>
