@@ -1675,9 +1675,13 @@ function getTopFromGroup(g, matchList) { return calcStandings(g, matchList); }
 
 function getBest3rds(matchList) {
     const thirds = [];
+    const seenTeams = new Set(); // prevent duplicates
     for (const g in GROUPS) {
         const sorted = calcStandings(g, matchList);
-        if (sorted[2]) thirds.push({group:g, team:sorted[2][0], stats:sorted[2][1]});
+        if (sorted[2] && !seenTeams.has(sorted[2][0])) {
+            thirds.push({group:g, team:sorted[2][0], stats:sorted[2][1]});
+            seenTeams.add(sorted[2][0]);
+        }
     }
     thirds.sort((a,b) => {
         if (b.stats.pts !== a.stats.pts) return b.stats.pts - a.stats.pts;
@@ -1798,9 +1802,9 @@ function matchDisplayCard(id, teamA, teamB, date, venue, labelA, labelB, elimRes
 
 // ── RENDER ELIMINATORIAS (view only - mi polla / real) ──
 function renderEliminatorias(mode) {
-    const users = getUsers();
+    const freshUsers = JSON.parse(localStorage.getItem('wc2026_users')||'{}');
     const matchList = mode==='miPolla'
-        ? (users[currentUser]?.matches||[])
+        ? (freshUsers[currentUser]?.matches||[])
         : getReal().filter(m=>m.gh!==null&&m.gh!==undefined);
 
     const standings={};
@@ -1857,8 +1861,9 @@ function renderUserElimPicks(freshPicks) {
     const cfg = getElimConfig();
     const picks = freshPicks !== undefined ? freshPicks : getUserElimPicks();
     const elimResults = getElimResults();
-    const users = getUsers();
-    const matchList = users[currentUser]?.matches||[];
+    // Always read fresh matchList from localStorage
+    const freshUsers = JSON.parse(localStorage.getItem('wc2026_users')||'{}');
+    const matchList = freshUsers[currentUser]?.matches || [];
 
     let h = `<div style="margin-bottom:14px;padding:8px 14px;background:#1a2540;border-radius:6px;font-size:0.82em;color:#888">
         ✏️ <strong style="color:#f5c518">Predice los marcadores de eliminatorias.</strong>
