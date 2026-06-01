@@ -546,6 +546,16 @@
             <p style="margin-bottom:4px">• <strong>⚽ Según mi pronóstico</strong> — cruces calculados según tus predicciones de grupos</p>
             <p>• <strong>📋 Resultados reales</strong> — resultados y cruces reales confirmados</p>
 
+            <h3>🟨 Fair Play</h3>
+            <p style="margin-bottom:8px">El Fair Play es el <strong>criterio de desempate 4</strong> cuando dos equipos empatan en Puntos, Diferencia de Goles y Goles a Favor. El admin carga las tarjetas acumuladas de cada selección. Sistema oficial FIFA:</p>
+            <table class="pts-table">
+                <tr><th>Tarjeta</th><th>Puntos de sanción</th></tr>
+                <tr><td>🟨 Amarilla</td><td>1 punto</td></tr>
+                <tr><td>🟨🟥 Amarilla + Roja</td><td>4 puntos</td></tr>
+                <tr><td>🟥 Roja directa</td><td>3 puntos</td></tr>
+            </table>
+            <p style="margin-top:8px">El equipo con <strong>menor puntaje de sanción</strong> queda mejor posicionado. Puedes ver la tabla completa en la pestaña <strong>🟨 Fair Play</strong>.</p>
+
             <h3>🏆 Sistema de Puntos</h3>
             <p style="margin-bottom:8px">Aplica igual para fase de grupos <strong>y</strong> eliminatorias:</p>
             <table class="pts-table">
@@ -556,6 +566,15 @@
                 <tr><td>🎯 Marcador exacto completo (BONUS)</td><td>+3 extra</td></tr>
                 <tr><td><strong>🏅 Máximo por partido</strong></td><td><strong>7 pts</strong></td></tr>
             </table>
+
+            <h3>📐 Criterios de desempate (grupos y mejores 3eros)</h3>
+            <ol style="margin-left:20px;line-height:2;margin-bottom:16px">
+                <li>Puntos</li>
+                <li>Diferencia de goles</li>
+                <li>Goles anotados</li>
+                <li>🟨 Fair Play (menos tarjetas = mejor)</li>
+                <li>Ranking FIFA</li>
+            </ol>
 
             <h3>📝 Ejemplos</h3>
             <div class="example-box">
@@ -1284,12 +1303,26 @@ function saveMyMatches() {
 function renderMy3rd() {
     const users = getUsers();
     const um = users[currentUser]?.matches || [];
-    let h = '<table class="standings"><thead><tr><th>Grupo</th><th>3er Lugar</th><th>PTS</th></tr></thead><tbody>';
-    for (const g in GROUPS) {
-        const sorted = calcStandings(g, um);
-        const third = sorted[2];
-        if (third) h += `<tr><td>Grupo ${g}</td><td><div class="team-cell">${flag(third[0])}<span>${third[0]}</span></div></td><td>${third[1].pts}</td></tr>`;
-    }
+    // Collect all thirds and sort by criteria
+    const thirds = getBest3rds(um);
+    let h = `<div style="margin-bottom:12px;font-size:0.85em;color:#666">Ordenados por: Pts → DG → GF → Fair Play. Los 8 mejores clasifican (🟠).</div>`;
+    h += '<table class="standings"><thead><tr><th>POS</th><th>Grupo</th><th>3er Lugar</th><th>PJ</th><th>PTS</th><th>GF</th><th>GC</th><th>DG</th></tr></thead><tbody>';
+    thirds.forEach((t, i) => {
+        const diff = t.stats.gf - t.stats.ga;
+        const dc = diff>0?'diff-pos':diff<0?'diff-neg':'diff-zero';
+        const classifica = i < 8 ? '🟠' : '';
+        h += `<tr style="border-left:3px solid ${i<8?'#ff9800':'#333'}">
+            <td style="color:${i<8?'#ff9800':'#555'};font-weight:bold">${i+1} ${classifica}</td>
+            <td>Grp ${t.group}</td>
+            <td><div class="team-cell">${flag(t.team)}<span>${t.team}</span></div></td>
+            <td>${t.stats.p}</td>
+            <td class="pts-bold">${t.stats.pts}</td>
+            <td>${t.stats.gf}</td>
+            <td>${t.stats.ga}</td>
+            <td class="${dc}">${diff>0?'+':''}${diff}</td>
+        </tr>`;
+    });
+    if (thirds.length === 0) h += '<tr><td colspan="8" style="color:#555;text-align:center;padding:16px">Ingresa pronósticos para ver los mejores terceros.</td></tr>';
     h += '</tbody></table>';
     document.getElementById('my3rdContainer').innerHTML = h;
 }
@@ -1350,29 +1383,23 @@ function renderRealResults() {
     // Best 3rds table (real)
     html += '<div id="viewBest3rds" style="display:none">';
     html += '<div style="margin-bottom:16px"><table class="standings" style="max-width:600px"><thead><tr>';
-    html += '<th style="text-align:left">GRUPO</th><th style="text-align:left">3ER LUGAR</th><th>PJ</th><th>PTS</th><th>GF</th><th>GC</th><th>DG</th>';
+    html += '<th>POS</th><th style="text-align:left">GRUPO</th><th style="text-align:left">3ER LUGAR</th><th>PJ</th><th>PTS</th><th>GF</th><th>GC</th><th>DG</th>';
     html += '</tr></thead><tbody>';
-    const thirds = [];
-    for (const g in GROUPS) {
-        const realM = real.map(r=>({id:r.id,gh:r.gh,ga:r.ga}));
-        const sorted = calcStandings(g, realM);
-        if (sorted[2]) {
-            const [team, s] = sorted[2];
-            const diff = s.gf - s.ga;
-            const dc = diff>0?'diff-pos':diff<0?'diff-neg':'diff-zero';
-            thirds.push({g, team, s, diff, dc});
-        }
-    }
-    // Sort by pts, DG, GF
-    thirds.sort((a,b)=>b.s.pts-a.s.pts||(b.diff-a.diff)||(b.s.gf-a.s.gf));
-    thirds.forEach((t,i)=>{
-        const medal = i<8 ? `<span style="color:#f5c518;font-size:0.75em">✅ CLASIFICA</span>` : '';
+
+    // Sort using getBest3rds logic (pts, DG, GF, Fair Play)
+    const realMatchList = real.map(r=>({id:r.id,gh:r.gh,ga:r.ga}));
+    const sortedThirds = getBest3rds(realMatchList);
+    sortedThirds.forEach((t,i)=>{
+        const diff = t.stats.gf - t.stats.ga;
+        const dc = diff>0?'diff-pos':diff<0?'diff-neg':'diff-zero';
+        const medal = i<8 ? `<span style="color:#ff9800;font-size:0.75em">🟠 CLASIFICA</span>` : '';
         html += `<tr style="border-left:3px solid ${i<8?'#ff9800':'#333'}">
-            <td>Grupo ${t.g}</td>
+            <td style="color:${i<8?'#ff9800':'#555'};font-weight:bold">${i+1}</td>
+            <td>Grupo ${t.group}</td>
             <td><div class="team-cell">${flag(t.team)}<span>${t.team}</span></div> ${medal}</td>
-            <td>${t.s.p}</td><td class="pts-bold">${t.s.pts}</td>
-            <td>${t.s.gf}</td><td>${t.s.ga}</td>
-            <td class="${t.dc}">${t.diff>0?'+':''}${t.diff}</td>
+            <td>${t.stats.p}</td><td class="pts-bold">${t.stats.pts}</td>
+            <td>${t.stats.gf}</td><td>${t.stats.ga}</td>
+            <td class="${dc}">${diff>0?'+':''}${diff}</td>
         </tr>`;
     });
     html += '</tbody></table></div>';
@@ -2247,13 +2274,6 @@ function renderFairPlayPublic() {
     const fp = getFairPlay();
     const container = document.getElementById('fairPlayPublicContainer');
     if (!container) return;
-
-    // Check if any data exists
-    const hasData = Object.keys(fp).length > 0;
-    if (!hasData) {
-        container.innerHTML = '<p style="color:#555;text-align:center;padding:40px">El admin aún no ha cargado datos de Fair Play.</p>';
-        return;
-    }
 
     let h = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px">';
     for (const g in GROUPS) {
