@@ -624,6 +624,7 @@
                 <button class="btn-save" onclick="saveRealResults()">&#128190; Guardar Resultados</button>
                 <button class="btn-sec" onclick="openEmailConfig()">&#9881;&#65039; Config Email</button>
                 <button class="btn-sec" onclick="resetAllUserMatches()" style="border-color:#f44336;color:#f44336">🗑️ Limpiar pronósticos</button>
+                <button class="btn-sec" onclick="toggleFairPlayPanel()">🟨 Fair Play</button>
             </div>
         </div>
 
@@ -637,6 +638,15 @@
             <h3>🔓 Habilitar rondas para picks de usuarios</h3>
             <div id="adminElimConfigContainer"></div>
         </div>
+        <div class="admin-card" id="fairPlayPanel" style="display:none;margin-top:16px">
+            <h3>🟨 Fair Play — Tarjetas</h3>
+            <p style="color:#888;font-size:0.85em;margin-bottom:16px">
+                Criterio de desempate 4. Sistema FIFA: Amarilla=1pt, Amarilla+Roja=4pts, Roja directa=3pts. Menor puntaje = mejor posición.
+            </p>
+            <div id="fairPlayContainer"></div>
+            <button class="btn-save" onclick="saveFairPlay()" style="margin-top:12px">💾 Guardar Fair Play</button>
+        </div>
+
         <div class="email-config" id="emailConfigPanel" style="display:none">
             <h3 style="color:#f5c518;margin-bottom:14px">Configurar EmailJS</h3>
             <p style="color:#888;margin-bottom:14px;font-size:0.9em">Ve a emailjs.com &rarr; conecta tu Gmail &rarr; crea un template</p>
@@ -680,7 +690,8 @@ function loadAllFromFirebase(callback) {
         db.ref('ejs').once('value').then(s => { if(s.val()) localStorage.setItem('wc2026_ejs', JSON.stringify(s.val())); }),
         db.ref('elim').once('value').then(s => { if(s.val()) localStorage.setItem('wc2026_elim', JSON.stringify(s.val())); }),
         db.ref('elimcfg').once('value').then(s => { if(s.val()) localStorage.setItem('wc2026_elimcfg', JSON.stringify(s.val())); }),
-        db.ref('userpicks').once('value').then(s => { if(s.val()) localStorage.setItem('wc2026_userpicks', JSON.stringify(s.val())); })
+        db.ref('userpicks').once('value').then(s => { if(s.val()) localStorage.setItem('wc2026_userpicks', JSON.stringify(s.val())); }),
+        db.ref('fairplay').once('value').then(s => { if(s.val()) localStorage.setItem('wc2026_fp', JSON.stringify(s.val())); })
     ]).then(() => callback()).catch(() => callback());
 }
 
@@ -838,6 +849,14 @@ function setReal(arr) {
     if (db) db.ref('real').set(arr.map(m=>({id:m.id,gh:m.gh,ga:m.ga}))).catch(()=>{});
 }
 function getEjsConfig() { try { return JSON.parse(localStorage.getItem('wc2026_ejs')||'{}'); } catch { return {}; } }
+
+function getFairPlay() {
+    try { return JSON.parse(localStorage.getItem('wc2026_fp')||'{}'); } catch { return {}; }
+}
+function setFairPlay(fp) {
+    localStorage.setItem('wc2026_fp', JSON.stringify(fp));
+    if (db) db.ref('fairplay').set(fp).catch(()=>{});
+}
 function setEjsConfig(c) {
     localStorage.setItem('wc2026_ejs', JSON.stringify(c));
     if (db) db.ref('ejs').set(c).catch(()=>{});
@@ -1064,7 +1083,20 @@ function calcStandings(groupName, matchList) {
         else if (gh<ga) { st[m.away].w++; st[m.away].pts+=3; st[m.home].l++; }
         else { st[m.home].d++; st[m.away].d++; st[m.home].pts++; st[m.away].pts++; }
     }
-    return Object.entries(st).sort((a,b)=>b[1].pts-a[1].pts||(b[1].gf-b[1].ga)-(a[1].gf-a[1].ga));
+    // Fair Play tiebreaker: less cards = better
+    const fp = getFairPlay();
+    return Object.entries(st).sort((a,b) => {
+        if (b[1].pts !== a[1].pts) return b[1].pts - a[1].pts;
+        const dga = a[1].gf-a[1].ga, dgb = b[1].gf-b[1].ga;
+        if (dgb !== dga) return dgb - dga;
+        if (b[1].gf !== a[1].gf) return b[1].gf - a[1].gf;
+        // Fair Play: yellow=1pt, red=3pts, yellow+red=4pts
+        const fpA = fp[a[0]] || {y:0,r:0,yr:0};
+        const fpB = fp[b[0]] || {y:0,r:0,yr:0};
+        const scoreA = (fpA.y||0)*1 + (fpA.yr||0)*4 + (fpA.r||0)*3;
+        const scoreB = (fpB.y||0)*1 + (fpB.yr||0)*4 + (fpB.r||0)*3;
+        return scoreA - scoreB; // less cards = better = lower score first
+    });
 }
 
 function standingsTable(groupName, matchList) {
