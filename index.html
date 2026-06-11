@@ -531,7 +531,7 @@
             </ol>
 
             <h3>🔒 Bloqueo automático</h3>
-            <p>Cada partido se bloquea a las <strong>00:00 del día del partido</strong> (hora Colombia). Verás cuenta regresiva ⏱ mientras esté abierto y candado 🔒 cuando esté cerrado. Tu marcador guardado queda fijo.</p>
+            <p>Cada partido se bloquea <strong>1 minuto antes de su hora de inicio</strong> (hora Colombia). Verás cuenta regresiva ⏱ con el próximo cierre del día y candado 🔒 en los partidos ya cerrados. Tu marcador guardado queda fijo. Los demás partidos del día siguen abiertos hasta su propia hora.</p>
 
             <h3>🏟️ Paso 3 — Eliminatorias</h3>
             <p style="margin-bottom:10px">Cuando el admin habilite cada ronda eliminatoria podrás ingresar tus predicciones:</p>
@@ -844,17 +844,31 @@ const ALL_MATCHES = [
 
 
 // ── LOCK LOGIC ──
-function isLocked(matchDate) {
-    if (currentUser === ADMIN_USER) return false;
-    const now = new Date();
-    const matchDay = new Date(matchDate + 'T00:00:00');
-    return now >= matchDay;
+// Bloqueo 1 minuto antes del inicio del partido (hora Colombia UTC-5)
+function parseMatchDateTime(date, time) {
+    const m = (time||'').match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (!m) return new Date(date + 'T00:00:00-05:00');
+    let h = parseInt(m[1]), min = parseInt(m[2]);
+    if (/PM/i.test(m[3]) && h !== 12) h += 12;
+    if (/AM/i.test(m[3]) && h === 12) h = 0;
+    return new Date(date + 'T' + String(h).padStart(2,'0') + ':' + String(min).padStart(2,'0') + ':00-05:00');
 }
 
-function horasRestantes(matchDate) {
-    const now = new Date();
-    const matchDay = new Date(matchDate + 'T00:00:00');
-    return matchDay - now;
+function matchLockTime(m) {
+    // 1 minuto antes del kickoff
+    return new Date(parseMatchDateTime(m.date, m.time).getTime() - 60000);
+}
+
+function isMatchLocked(m) {
+    if (currentUser === ADMIN_USER) return false;
+    return new Date() >= matchLockTime(m);
+}
+
+// Compat: bloqueo por fecha = todos los partidos de esa fecha bloqueados
+function isLocked(matchDate) {
+    if (currentUser === ADMIN_USER) return false;
+    const dayMatches = ALL_MATCHES.filter(x => x.date === matchDate);
+    return dayMatches.length > 0 && dayMatches.every(m => isMatchLocked(m));
 }
 
 // ── STORAGE ──
@@ -1170,13 +1184,13 @@ function renderMyMatches() {
         const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
         const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
         const label = `${dias[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}`;
-        const locked = isLocked(date);
+        const allDayLocked = byDate[date].every(m => isMatchLocked(m));
         const dateId = date.replace(/-/g,'');
 
         h += `<div class="date-section">
             <div class="date-header">
                 📅 ${label}
-                ${locked
+                ${allDayLocked
                     ? '<span class="locked-badge">🔒 CERRADO</span>'
                     : `<span class="countdown" id="cd_${dateId}">⏱ calculando...</span>`
                 }
@@ -1187,6 +1201,7 @@ function renderMyMatches() {
             const u = um.find(x=>x.id===m.id);
             const gh = u?.gh ?? '';
             const ga = u?.ga ?? '';
+            const locked = isMatchLocked(m);
 
             if (locked) {
                 const dispGh = (gh !== '') ? gh : '?';
@@ -1244,15 +1259,23 @@ function renderMyMatches() {
     if (window._countdownInterval) clearInterval(window._countdownInterval);
     window._countdownInterval = setInterval(() => {
         const dates = Object.keys(window._byDate || {});
+        let needsRerender = false;
         dates.forEach(date => {
-            if (isLocked(date)) return;
+            const dayMatches = window._byDate[date];
+            const openMatches = dayMatches.filter(m => !isMatchLocked(m));
             const dateId = date.replace(/-/g,'');
             const el = document.getElementById('cd_' + dateId);
-            if (!el) return;
-            const now = new Date();
-            const matchDay = new Date(date + 'T00:00:00');
-            const diff = matchDay - now;
-            if (diff <= 0) { renderMyMatches(); return; }
+            if (!el) {
+                // Header shows CERRADO but maybe a match was open before — check rerender
+                if (openMatches.length === 0) return;
+                needsRerender = true;
+                return;
+            }
+            if (openMatches.length === 0) { needsRerender = true; return; }
+            // Countdown to the next lock time (1 min before next kickoff)
+            const nextLock = Math.min(...openMatches.map(m => matchLockTime(m).getTime()));
+            const diff = nextLock - Date.now();
+            if (diff <= 0) { needsRerender = true; return; }
             const dd = Math.floor(diff/86400000);
             const hh = Math.floor((diff%86400000)/3600000);
             const mm = Math.floor((diff%3600000)/60000);
@@ -1262,8 +1285,9 @@ function renderMyMatches() {
             parts.push(String(hh).padStart(2,'0')+'h');
             parts.push(String(mm).padStart(2,'0')+'m');
             parts.push(String(ss).padStart(2,'0')+'s');
-            el.textContent = '⏱ ' + parts.join(' ');
+            el.textContent = '⏱ próximo cierre: ' + parts.join(' ');
         });
+        if (needsRerender) renderMyMatches();
     }, 1000);
 }
 
@@ -1275,7 +1299,7 @@ function saveMyMatches() {
         const matches = [];
 
         for (const m of ALL_MATCHES) {
-            if (isLocked(m.date)) {
+            if (isMatchLocked(m)) {
                 const prev = existing.find(x=>x.id===m.id);
                 if (prev) matches.push(prev);
                 continue;
