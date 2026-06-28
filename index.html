@@ -464,6 +464,7 @@
             <button onclick="showSubTab('subPartidos',this)" class="toggle-btn toggle-active" id="stbPartidos">⚽ Partidos</button>
             <button onclick="showSubTab('subPronostico',this)" class="toggle-btn" id="stbPronostico">📊 Mi Pronóstico</button>
             <button onclick="showSubTab('subTerceros',this)" class="toggle-btn" id="stbTerceros">🥉 Mejores 3eros</button>
+            <button onclick="showSubTab('subD16',this)" class="toggle-btn" id="stbD16">🏟️ Dieciseisavos</button>
         </div>
         <!-- Sub-content -->
         <div id="subPartidos">
@@ -480,6 +481,15 @@
         </div>
         <div id="subTerceros" style="display:none">
             <div id="my3rdContainer"></div>
+        </div>
+        <div id="subD16" style="display:none">
+            <p style="color:#666;font-size:0.85em;margin-bottom:16px">
+                🏟️ Pronostica los 16 partidos de dieciseisavos. Mismo sistema de puntos (máximo 7 por partido). Cada partido se bloquea 1 minuto antes del inicio.
+            </p>
+            <div id="myD16Container"></div>
+            <div style="text-align:center;margin-top:20px;margin-bottom:30px">
+                <button class="btn-save" onclick="saveMyD16()" style="padding:13px 40px">💾 Guardar pronósticos Dieciseisavos</button>
+            </div>
         </div>
     </div>
 
@@ -533,7 +543,17 @@
             <h3>🔒 Bloqueo automático</h3>
             <p>Cada partido se bloquea <strong>1 minuto antes de su hora de inicio</strong> (hora Colombia). Verás cuenta regresiva ⏱ con el próximo cierre del día y candado 🔒 en los partidos ya cerrados. Tu marcador guardado queda fijo. Los demás partidos del día siguen abiertos hasta su propia hora.</p>
 
-            <h3>🏟️ Paso 3 — Eliminatorias</h3>
+            <h3>🏟️ Paso 3 — Dieciseisavos</h3>
+            <p style="margin-bottom:10px">Una vez se conocen los 16 partidos de dieciseisavos, podrás predecir sus marcadores:</p>
+            <ol style="margin-left:20px;margin-bottom:16px;line-height:2">
+                <li>Ve a <strong>⚽ Mi Polla → 🏟️ Dieciseisavos</strong></li>
+                <li>Ingresa el marcador que crees que quedará en cada uno de los <strong>16 partidos</strong></li>
+                <li>Presiona <strong>💾 Guardar pronósticos Dieciseisavos</strong></li>
+                <li>Cada partido se bloquea <strong>1 minuto antes de su hora de inicio</strong> (igual que grupos)</li>
+                <li>Mismo sistema de puntos que la fase de grupos (máximo 7 pts por partido)</li>
+            </ol>
+
+            <h3>🏟️ Paso 4 — Resto de Eliminatorias</h3>
             <p style="margin-bottom:10px">Cuando el admin habilite cada ronda eliminatoria podrás ingresar tus predicciones:</p>
             <ol style="margin-left:20px;margin-bottom:16px;line-height:2">
                 <li>Ve a <strong>🏟️ Eliminatorias → ✏️ Mi predicción eliminatorias</strong></li>
@@ -652,6 +672,13 @@
                 <button class="btn-sec" onclick="resetAllUserMatches()" style="border-color:#f44336;color:#f44336">🗑️ Limpiar pronósticos</button>
 
             </div>
+        </div>
+
+        <div class="admin-card" style="margin-top:20px">
+            <h3>🏟️ Cargar Resultados Reales — Dieciseisavos</h3>
+            <p style="color:#888;font-size:0.85em;margin-bottom:16px">Los 16 partidos confirmados de la primera fase eliminatoria. Cargar aquí los resultados oficiales.</p>
+            <div id="adminD16Container"></div>
+            <button class="btn-save" onclick="saveAdminD16Results()" style="margin-top:12px">💾 Guardar resultados Dieciseisavos</button>
         </div>
 
         <div class="admin-card" style="margin-top:20px">
@@ -840,6 +867,26 @@ const ALL_MATCHES = [
     {id:69,group:"K", home:"RD Congo",             away:"Uzbekistán",          date:"2026-06-27", time:"6:30 PM"},
     {id:70,group:"J", home:"Jordania",             away:"Argentina",           date:"2026-06-27", time:"9:00 PM"},
     {id:71,group:"J", home:"Argelia",              away:"Austria",             date:"2026-06-27", time:"9:00 PM"},
+];
+
+// Dieciseisavos REALES (16 partidos confirmados con equipos reales)
+const D16_MATCHES = [
+    {id:'P73', home:'Sudáfrica',      away:'Canadá',               date:'2026-06-28', time:'2:00 PM',  venue:'Los Ángeles'},
+    {id:'P74', home:'Brasil',         away:'Japón',                date:'2026-06-29', time:'12:00 PM', venue:'Boston'},
+    {id:'P75', home:'Alemania',       away:'Paraguay',             date:'2026-06-29', time:'3:30 PM',  venue:'Monterrey'},
+    {id:'P76', home:'Países Bajos',   away:'Marruecos',            date:'2026-06-29', time:'8:00 PM',  venue:'Houston'},
+    {id:'P77', home:'Costa de Marfil',away:'Noruega',              date:'2026-06-30', time:'12:00 PM', venue:'Nueva York'},
+    {id:'P78', home:'Francia',        away:'Suecia',               date:'2026-06-30', time:'4:00 PM',  venue:'Dallas'},
+    {id:'P79', home:'México',         away:'Ecuador',              date:'2026-06-30', time:'8:00 PM',  venue:'Cd. México'},
+    {id:'P80', home:'Inglaterra',     away:'RD Congo',             date:'2026-07-01', time:'11:00 AM', venue:'Atlanta'},
+    {id:'P81', home:'Bélgica',        away:'Senegal',              date:'2026-07-01', time:'3:00 PM',  venue:'San Francisco'},
+    {id:'P82', home:'Estados Unidos', away:'Bosnia y Herzegovina', date:'2026-07-01', time:'7:00 PM',  venue:'Seattle'},
+    {id:'P83', home:'España',         away:'Austria',              date:'2026-07-02', time:'2:00 PM',  venue:'Toronto'},
+    {id:'P84', home:'Portugal',       away:'Croacia',              date:'2026-07-02', time:'6:00 PM',  venue:'Los Ángeles'},
+    {id:'P85', home:'Suiza',          away:'Argelia',              date:'2026-07-02', time:'10:00 PM', venue:'Vancouver'},
+    {id:'P86', home:'Australia',      away:'Egipto',               date:'2026-07-03', time:'1:00 PM',  venue:'Miami'},
+    {id:'P87', home:'Argentina',      away:'Cabo Verde',           date:'2026-07-03', time:'5:00 PM',  venue:'Kansas City'},
+    {id:'P88', home:'Colombia',       away:'Ghana',                date:'2026-07-03', time:'8:30 PM',  venue:'Dallas'},
 ];
 
 
@@ -1063,19 +1110,21 @@ function init() {
     renderRanking();
     renderEliminatorias('miPolla');
     renderFairPlayPublic();
-    if (isAdmin) { renderAllForecasts(); renderAdminRealResults(); renderAdminElimResults(); renderAdminElimConfig(); renderUserList(); renderFairPlayAdmin(); }
+    renderMyD16();
+    if (isAdmin) { renderAllForecasts(); renderAdminRealResults(); renderAdminD16Results(); renderAdminElimResults(); renderAdminElimConfig(); renderUserList(); renderFairPlayAdmin(); }
 }
 
 function showSubTab(subId, btn) {
-    ['subPartidos','subPronostico','subTerceros'].forEach(id => {
+    ['subPartidos','subPronostico','subTerceros','subD16'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = id===subId ? 'block' : 'none';
     });
     document.querySelectorAll('#subTabsRow .toggle-btn').forEach(b => b.classList.remove('toggle-active'));
     if (btn) btn.classList.add('toggle-active');
-    // Show/hide save bar only when on Partidos sub-tab
+    // Show/hide save bar only when on Partidos sub-tab (group stage)
     const bar = document.getElementById('fixedSaveBar');
     if (bar) bar.style.display = subId==='subPartidos' ? 'flex' : 'none';
+    if (subId==='subD16') renderMyD16();
 }
 
 function switchTab(id, btn) {
@@ -1674,6 +1723,250 @@ function saveEmailConfig() {
 }
 </script>
 <script>
+
+// ══════════════════════════════════════════
+// DIECISEISAVOS (D16) — Partidos reales fijos
+// ══════════════════════════════════════════
+
+// Helper: get user picks for D16 (reuses userpicks storage)
+function getUserD16Picks() {
+    const all = JSON.parse(localStorage.getItem('wc2026_userpicks')||'{}');
+    return all[currentUser] || {};
+}
+
+// Render Mi Polla → Dieciseisavos (style similar to group matches)
+function renderMyD16() {
+    const picks = getUserD16Picks();
+    const elimResults = getElimResults();
+
+    // Group D16 matches by date
+    const byDate = {};
+    for (const m of D16_MATCHES) {
+        if (!byDate[m.date]) byDate[m.date] = [];
+        byDate[m.date].push(m);
+    }
+    window._d16ByDate = byDate;
+
+    let h = '';
+    for (const date of Object.keys(byDate).sort()) {
+        const d = new Date(date + 'T12:00:00');
+        const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+        const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        const label = `${dias[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}`;
+        const allDayLocked = byDate[date].every(m => isMatchLocked(m));
+        const dateId = 'd16_' + date.replace(/-/g,'');
+
+        h += `<div class="date-section">
+            <div class="date-header">
+                📅 ${label}
+                ${allDayLocked
+                    ? '<span class="locked-badge">🔒 CERRADO</span>'
+                    : `<span class="countdown" id="cd_${dateId}">⏱ calculando...</span>`
+                }
+            </div>
+            <div class="matches-grid">`;
+
+        for (const m of byDate[date]) {
+            const pick = picks[m.id] || {};
+            const ghVal = pick.ghA!==undefined && pick.ghA!=='' ? pick.ghA : '';
+            const gaVal = pick.ghB!==undefined && pick.ghB!=='' ? pick.ghB : '';
+            const locked = isMatchLocked(m);
+            // Real result for points
+            const res = elimResults[m.id]||{};
+            const realA = res.ghA!==undefined&&res.ghA!==''?res.ghA:null;
+            const realB = res.ghB!==undefined&&res.ghB!==''?res.ghB:null;
+            const pts = (realA!==null && realB!==null && ghVal!=='' && gaVal!=='') ? calcElimPoints(realA, realB, ghVal, gaVal) : null;
+
+            if (locked) {
+                const dispGh = (ghVal !== '') ? ghVal : '?';
+                const dispGa = (gaVal !== '') ? gaVal : '?';
+                h += `<div class="match-card" style="opacity:0.7;border-left-color:#f44336">
+                    <div class="match-meta">
+                        <span class="group-badge">${m.id}</span>
+                        <span style="color:#555;font-size:0.82em">${m.time||''}</span>
+                        <span style="color:#f44336;font-size:0.8em">🔒</span>
+                        ${pts!==null?`<span style="color:#f5c518;font-size:0.85em;font-weight:bold">+${pts} pts</span>`:''}
+                    </div>
+                    <div class="match-row">
+                        <div class="team-left"><span>${m.home}</span>${flag(m.home)}</div>
+                        <div class="score-box">
+                            <div class="score-locked">${dispGh}</div>
+                            <span class="score-sep">-</span>
+                            <div class="score-locked">${dispGa}</div>
+                        </div>
+                        <div class="team-right">${flag(m.away)}<span>${m.away}</span></div>
+                    </div>
+                </div>`;
+            } else {
+                h += `<div class="match-card">
+                    <div class="match-meta">
+                        <span class="group-badge">${m.id}</span>
+                        <span style="color:#aaa;font-size:0.82em">🕐 ${m.time||''}</span>
+                    </div>
+                    <div class="match-row">
+                        <div class="team-left"><span>${m.home}</span>${flag(m.home)}</div>
+                        <div class="score-box">
+                            <input type="number" class="score-inp" id="d16_gh_${m.id}" value="${ghVal}" placeholder="?" min="0" max="99" step="1" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,2)">
+                            <span class="score-sep">-</span>
+                            <input type="number" class="score-inp" id="d16_ga_${m.id}" value="${gaVal}" placeholder="?" min="0" max="99" step="1" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,2)">
+                        </div>
+                        <div class="team-right">${flag(m.away)}<span>${m.away}</span></div>
+                    </div>
+                </div>`;
+            }
+        }
+        h += '</div></div>';
+    }
+
+    document.getElementById('myD16Container').innerHTML = h;
+
+    // Countdown timer for d16 dates
+    if (window._d16CountdownInterval) clearInterval(window._d16CountdownInterval);
+    window._d16CountdownInterval = setInterval(() => {
+        const dates = Object.keys(window._d16ByDate || {});
+        let needsRerender = false;
+        dates.forEach(date => {
+            const dayMatches = window._d16ByDate[date];
+            const openMatches = dayMatches.filter(m => !isMatchLocked(m));
+            const dateId = 'd16_' + date.replace(/-/g,'');
+            const el = document.getElementById('cd_' + dateId);
+            if (!el) {
+                if (openMatches.length === 0) return;
+                needsRerender = true; return;
+            }
+            if (openMatches.length === 0) { needsRerender = true; return; }
+            const nextLock = Math.min(...openMatches.map(m => matchLockTime(m).getTime()));
+            const diff = nextLock - Date.now();
+            if (diff <= 0) { needsRerender = true; return; }
+            const dd = Math.floor(diff/86400000);
+            const hh = Math.floor((diff%86400000)/3600000);
+            const mm = Math.floor((diff%3600000)/60000);
+            const ss = Math.floor((diff%60000)/1000);
+            const parts = [];
+            if (dd>0) parts.push(dd+'d');
+            parts.push(String(hh).padStart(2,'0')+'h');
+            parts.push(String(mm).padStart(2,'0')+'m');
+            parts.push(String(ss).padStart(2,'0')+'s');
+            el.textContent = '⏱ próximo cierre: ' + parts.join(' ');
+        });
+        if (needsRerender) renderMyD16();
+    }, 1000);
+}
+
+function saveMyD16() {
+    try {
+        const allPicks = JSON.parse(localStorage.getItem('wc2026_userpicks')||'{}');
+        const newPicks = Object.assign({}, allPicks[currentUser] || {});
+        let saved = 0;
+
+        for (const m of D16_MATCHES) {
+            if (isMatchLocked(m)) continue; // keep existing pick
+            const ghEl = document.getElementById('d16_gh_' + m.id);
+            const gaEl = document.getElementById('d16_ga_' + m.id);
+            if (!ghEl || !gaEl) continue;
+            const ghVal = ghEl.value.trim();
+            const gaVal = gaEl.value.trim();
+            if (ghVal === '' || gaVal === '') {
+                // delete pick if user cleared it
+                delete newPicks[m.id];
+                continue;
+            }
+            newPicks[m.id] = {ghA: parseInt(ghVal), ghB: parseInt(gaVal)};
+            saved++;
+        }
+
+        allPicks[currentUser] = newPicks;
+        localStorage.setItem('wc2026_userpicks', JSON.stringify(allPicks));
+        if (db) db.ref('userpicks').set(allPicks).catch(()=>{});
+
+        showToast('✅ ' + saved + ' picks de dieciseisavos guardados');
+        renderMyD16();
+        renderRanking();
+    } catch(e) {
+        alert('Error al guardar: ' + e.message);
+    }
+}
+
+// ── ADMIN: D16 real results ──
+function renderAdminD16Results() {
+    const elimResults = getElimResults();
+
+    // Group by date for nice layout
+    const byDate = {};
+    for (const m of D16_MATCHES) {
+        if (!byDate[m.date]) byDate[m.date] = [];
+        byDate[m.date].push(m);
+    }
+
+    let h = '';
+    for (const date of Object.keys(byDate).sort()) {
+        const d = new Date(date + 'T12:00:00');
+        const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+        const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        const label = `${dias[d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}`;
+
+        h += `<div class="group-card" style="margin-bottom:16px">
+            <div class="group-card-header"><strong>📅 ${label}</strong></div>
+            <div style="padding:12px">`;
+        for (const m of byDate[date]) {
+            const r = elimResults[m.id] || {};
+            const ghA = r.ghA!==undefined && r.ghA!==''?r.ghA:'';
+            const ghB = r.ghB!==undefined && r.ghB!==''?r.ghB:'';
+            h += `<div class="admin-match-row">
+                <span style="font-size:0.85em"><strong style="color:#f5c518">${m.id}</strong> ${flag(m.home)} ${m.home}</span>
+                <input type="number" class="admin-inp" id="d16real_gh_${m.id}" value="${ghA}" placeholder="?" min="0" max="99" step="1" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,2)">
+                <span style="text-align:center;color:#555">-</span>
+                <input type="number" class="admin-inp" id="d16real_ga_${m.id}" value="${ghB}" placeholder="?" min="0" max="99" step="1" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,2)">
+                <span style="font-size:0.85em">${flag(m.away)} ${m.away} <span style="color:#666;font-size:0.85em">· ${m.time}</span></span>
+            </div>`;
+        }
+        h += '</div></div>';
+    }
+
+    document.getElementById('adminD16Container').innerHTML = h;
+}
+
+function saveAdminD16Results() {
+    const results = getElimResults();
+    let saved = 0;
+    for (const m of D16_MATCHES) {
+        const ghEl = document.getElementById('d16real_gh_' + m.id);
+        const gaEl = document.getElementById('d16real_ga_' + m.id);
+        if (!ghEl || !gaEl) continue;
+        const ghVal = ghEl.value.trim();
+        const gaVal = gaEl.value.trim();
+        if (!results[m.id]) results[m.id] = {};
+        // Always set teamA/teamB names so later rounds (octavos) can resolve "Gan. P73" etc.
+        results[m.id].teamA = m.home;
+        results[m.id].teamB = m.away;
+        if (ghVal !== '' && gaVal !== '') {
+            results[m.id].ghA = parseInt(ghVal);
+            results[m.id].ghB = parseInt(gaVal);
+            saved++;
+        } else {
+            // If both empty, clear scores
+            delete results[m.id].ghA;
+            delete results[m.id].ghB;
+        }
+    }
+    setElimResults(results);
+    showToast('✅ ' + saved + ' resultados de dieciseisavos guardados');
+    renderAdminD16Results();
+    renderRanking();
+    renderEliminatorias('real');
+}
+
+function clearAdminD16Result(id) {
+    const results = getElimResults();
+    if (results[id]) {
+        delete results[id].ghA;
+        delete results[id].ghB;
+    }
+    setElimResults(results);
+    renderAdminD16Results();
+    renderRanking();
+}
+
 // ══════════════════════════════════════════
 // ELIMINATORIAS — BRACKETS
 // ══════════════════════════════════════════
