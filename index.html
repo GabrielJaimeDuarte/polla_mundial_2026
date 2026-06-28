@@ -1653,21 +1653,42 @@ function resetAllUserMatches() {
 function renderAllForecasts() {
     const users=getUsers();
     const real=getReal();
+    const elimResults = getElimResults();
+    const allUserPicks = JSON.parse(localStorage.getItem('wc2026_userpicks')||'{}');
     let h='';
     for (const u in users) {
         if (u===ADMIN_USER) continue;
         const um=users[u].matches||[];
-        let pts=0;
+        let ptsGroups=0;
+        // Group stage points
         for (const m of ALL_MATCHES) {
             const um2=um.find(x=>x.id===m.id);
             const rm=real.find(x=>x.id===m.id);
             if(um2&&rm?.gh!==null&&rm?.ga!==null&&rm?.gh!==undefined&&rm?.ga!==undefined)
-                pts+=calcPoints(rm.gh,rm.ga,um2.gh,um2.ga);
+                ptsGroups+=calcPoints(rm.gh,rm.ga,um2.gh,um2.ga);
         }
+        // D16 points
+        const userPicks = allUserPicks[u] || {};
+        let ptsD16 = 0;
+        for (const m of D16_MATCHES) {
+            const pick = userPicks[m.id];
+            const res = elimResults[m.id];
+            if (!pick || !res) continue;
+            if (res.ghA===undefined || res.ghA==='' || res.ghB===undefined || res.ghB==='') continue;
+            ptsD16 += calcElimPoints(res.ghA, res.ghB, pick.ghA, pick.ghB);
+        }
+        const ptsTotal = ptsGroups + ptsD16;
+
         h+=`<div class="match-card" style="margin-bottom:16px">
             <strong style="color:#f5c518;font-size:1.1em">${u}</strong>
-            <span style="float:right;color:#f5c518">${pts} pts</span>
+            <span style="float:right;color:#f5c518;font-size:1.05em">
+                <span style="color:#888;font-size:0.85em">Grupos: ${ptsGroups} · D16: ${ptsD16} ·</span>
+                <strong>TOTAL: ${ptsTotal} pts</strong>
+            </span>
             <hr style="border-color:#1e2a3a;margin:10px 0">`;
+
+        // Group stage forecasts
+        h+=`<div style="font-family:'Bebas Neue',cursive;color:#f5c518;letter-spacing:2px;margin:6px 0 8px;font-size:0.95em">⚽ FASE DE GRUPOS</div>`;
         for (const g in GROUPS) {
             h+=`<strong style="font-size:0.85em;color:#888">GRUPO ${g}</strong><br>`;
             for (const m of ALL_MATCHES.filter(x=>x.group===g)) {
@@ -1680,6 +1701,20 @@ function renderAllForecasts() {
                 h+=`<span style="font-size:0.85em">${m.home} <strong>${gh}-${ga}</strong> ${m.away} <span style="color:#888">(Real: ${rgh}-${rga})</span> <span style="color:#f5c518">[${p}pts]</span></span><br>`;
             }
         }
+
+        // D16 forecasts
+        h+=`<div style="font-family:'Bebas Neue',cursive;color:#f5c518;letter-spacing:2px;margin:14px 0 8px;font-size:0.95em">🏟️ DIECISEISAVOS</div>`;
+        for (const m of D16_MATCHES) {
+            const pick = userPicks[m.id];
+            const res = elimResults[m.id] || {};
+            const gh = pick?.ghA!==undefined?pick.ghA:'-';
+            const ga = pick?.ghB!==undefined?pick.ghB:'-';
+            const rgh = (res.ghA!==undefined && res.ghA!=='')?res.ghA:'-';
+            const rga = (res.ghB!==undefined && res.ghB!=='')?res.ghB:'-';
+            const p = (pick && res.ghA!==undefined && res.ghA!=='' && res.ghB!==undefined && res.ghB!=='') ? calcElimPoints(res.ghA, res.ghB, pick.ghA, pick.ghB) : 0;
+            h+=`<span style="font-size:0.85em"><strong style="color:#f5c518">${m.id}</strong> ${m.home} <strong>${gh}-${ga}</strong> ${m.away} <span style="color:#888">(Real: ${rgh}-${rga})</span> <span style="color:#f5c518">[${p}pts]</span></span><br>`;
+        }
+
         h+='</div>';
     }
     document.getElementById('allForecastsContainer').innerHTML = h||'<p style="color:#666">No hay usuarios aún</p>';
