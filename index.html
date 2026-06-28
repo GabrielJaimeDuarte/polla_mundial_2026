@@ -541,6 +541,7 @@
                 <li>Ingresa el marcador que crees que quedará en cada partido</li>
                 <li>Presiona <strong>💾 Guardar picks eliminatorias</strong></li>
                 <li>Si borras un marcador y guardas, el pick queda eliminado</li>
+                <li><strong>Cada partido se bloquea 1 minuto antes de su hora de inicio</strong> (igual que en grupos)</li>
             </ol>
             <p style="margin-bottom:8px">También puedes ver en Eliminatorias:</p>
             <p style="margin-bottom:4px">• <strong>⚽ Según mi pronóstico</strong> — cruces calculados según tus predicciones de grupos</p>
@@ -1677,41 +1678,41 @@ function saveEmailConfig() {
 // ELIMINATORIAS — BRACKETS
 // ══════════════════════════════════════════
 const BRACKET_16 = [
-    {id:'P73',date:'Jun 28',teamA:{type:'2nd',group:'A'},teamB:{type:'2nd',group:'B'},venue:'Los Ángeles'},
-    {id:'P74',date:'Jun 29',teamA:{type:'1st',group:'E'},teamB:{type:'3rd',groups:'ABCDF'},venue:'Boston'},
-    {id:'P75',date:'Jun 29',teamA:{type:'1st',group:'F'},teamB:{type:'2nd',group:'C'},venue:'Monterrey'},
-    {id:'P76',date:'Jun 29',teamA:{type:'1st',group:'C'},teamB:{type:'2nd',group:'F'},venue:'Houston'},
-    {id:'P77',date:'Jun 30',teamA:{type:'1st',group:'I'},teamB:{type:'3rd',groups:'CDFGH'},venue:'Nueva York'},
-    {id:'P78',date:'Jun 30',teamA:{type:'2nd',group:'E'},teamB:{type:'2nd',group:'I'},venue:'Dallas'},
-    {id:'P79',date:'Jun 30',teamA:{type:'1st',group:'A'},teamB:{type:'3rd',groups:'CEFHI'},venue:'Cd. México'},
-    {id:'P80',date:'Jul 1', teamA:{type:'1st',group:'L'},teamB:{type:'3rd',groups:'EHIJK'},venue:'Atlanta'},
-    {id:'P81',date:'Jul 1', teamA:{type:'1st',group:'D'},teamB:{type:'3rd',groups:'BEFIJ'},venue:'San Francisco'},
-    {id:'P82',date:'Jul 1', teamA:{type:'1st',group:'G'},teamB:{type:'3rd',groups:'AEHIJ'},venue:'Seattle'},
-    {id:'P83',date:'Jul 2', teamA:{type:'2nd',group:'K'},teamB:{type:'2nd',group:'L'},venue:'Toronto'},
-    {id:'P84',date:'Jul 2', teamA:{type:'1st',group:'H'},teamB:{type:'2nd',group:'J'},venue:'Los Ángeles'},
-    {id:'P85',date:'Jul 2', teamA:{type:'1st',group:'B'},teamB:{type:'3rd',groups:'EFGIJ'},venue:'Vancouver'},
-    {id:'P86',date:'Jul 3', teamA:{type:'1st',group:'J'},teamB:{type:'2nd',group:'H'},venue:'Miami'},
-    {id:'P87',date:'Jul 3', teamA:{type:'1st',group:'K'},teamB:{type:'3rd',groups:'DEJIL'},venue:'Kansas City'},
-    {id:'P88',date:'Jul 3', teamA:{type:'2nd',group:'D'},teamB:{type:'2nd',group:'G'},venue:'Dallas'},
+    {id:'P73',date:'2026-06-28',time:'2:00 PM',  teamA:{type:'2nd',group:'A'},teamB:{type:'2nd',group:'B'},venue:'Los Ángeles'},
+    {id:'P74',date:'2026-06-29',time:'12:00 PM', teamA:{type:'1st',group:'E'},teamB:{type:'3rd',groups:'ABCDF'},venue:'Boston'},
+    {id:'P75',date:'2026-06-29',time:'3:30 PM',  teamA:{type:'1st',group:'F'},teamB:{type:'2nd',group:'C'},venue:'Monterrey'},
+    {id:'P76',date:'2026-06-29',time:'8:00 PM',  teamA:{type:'1st',group:'C'},teamB:{type:'2nd',group:'F'},venue:'Houston'},
+    {id:'P77',date:'2026-06-30',time:'12:00 PM', teamA:{type:'1st',group:'I'},teamB:{type:'3rd',groups:'CDFGH'},venue:'Nueva York'},
+    {id:'P78',date:'2026-06-30',time:'4:00 PM',  teamA:{type:'2nd',group:'E'},teamB:{type:'2nd',group:'I'},venue:'Dallas'},
+    {id:'P79',date:'2026-06-30',time:'8:00 PM',  teamA:{type:'1st',group:'A'},teamB:{type:'3rd',groups:'CEFHI'},venue:'Cd. México'},
+    {id:'P80',date:'2026-07-01',time:'11:00 AM', teamA:{type:'1st',group:'L'},teamB:{type:'3rd',groups:'EHIJK'},venue:'Atlanta'},
+    {id:'P81',date:'2026-07-01',time:'3:00 PM',  teamA:{type:'1st',group:'D'},teamB:{type:'3rd',groups:'BEFIJ'},venue:'San Francisco'},
+    {id:'P82',date:'2026-07-01',time:'7:00 PM',  teamA:{type:'1st',group:'G'},teamB:{type:'3rd',groups:'AEHIJ'},venue:'Seattle'},
+    {id:'P83',date:'2026-07-02',time:'2:00 PM',  teamA:{type:'2nd',group:'K'},teamB:{type:'2nd',group:'L'},venue:'Toronto'},
+    {id:'P84',date:'2026-07-02',time:'6:00 PM',  teamA:{type:'1st',group:'H'},teamB:{type:'2nd',group:'J'},venue:'Los Ángeles'},
+    {id:'P85',date:'2026-07-02',time:'10:00 PM', teamA:{type:'1st',group:'B'},teamB:{type:'3rd',groups:'EFGIJ'},venue:'Vancouver'},
+    {id:'P86',date:'2026-07-03',time:'1:00 PM',  teamA:{type:'1st',group:'J'},teamB:{type:'2nd',group:'H'},venue:'Miami'},
+    {id:'P87',date:'2026-07-03',time:'5:00 PM',  teamA:{type:'1st',group:'K'},teamB:{type:'3rd',groups:'DEJIL'},venue:'Kansas City'},
+    {id:'P88',date:'2026-07-03',time:'8:30 PM',  teamA:{type:'2nd',group:'D'},teamB:{type:'2nd',group:'G'},venue:'Dallas'},
 ];
 
 const BRACKET_LATER = [
-    {id:'P89', round:'Octavos',    date:'Jul 4',  teamA:'Gan. P74', teamB:'Gan. P77', venue:'Filadelfia'},
-    {id:'P90', round:'Octavos',    date:'Jul 4',  teamA:'Gan. P73', teamB:'Gan. P75', venue:'Houston'},
-    {id:'P91', round:'Octavos',    date:'Jul 5',  teamA:'Gan. P76', teamB:'Gan. P78', venue:'Nueva York'},
-    {id:'P92', round:'Octavos',    date:'Jul 5',  teamA:'Gan. P79', teamB:'Gan. P80', venue:'Cd. México'},
-    {id:'P93', round:'Octavos',    date:'Jul 6',  teamA:'Gan. P83', teamB:'Gan. P84', venue:'Dallas'},
-    {id:'P94', round:'Octavos',    date:'Jul 6',  teamA:'Gan. P81', teamB:'Gan. P82', venue:'Seattle'},
-    {id:'P95', round:'Octavos',    date:'Jul 7',  teamA:'Gan. P86', teamB:'Gan. P88', venue:'Atlanta'},
-    {id:'P96', round:'Octavos',    date:'Jul 7',  teamA:'Gan. P85', teamB:'Gan. P87', venue:'Vancouver'},
-    {id:'P97', round:'Cuartos',    date:'Jul 9',  teamA:'Gan. P89', teamB:'Gan. P90', venue:'Boston'},
-    {id:'P98', round:'Cuartos',    date:'Jul 10', teamA:'Gan. P93', teamB:'Gan. P94', venue:'Los Ángeles'},
-    {id:'P99', round:'Cuartos',    date:'Jul 11', teamA:'Gan. P91', teamB:'Gan. P92', venue:'Miami'},
-    {id:'P100',round:'Cuartos',    date:'Jul 11', teamA:'Gan. P95', teamB:'Gan. P96', venue:'Kansas City'},
-    {id:'P101',round:'Semifinal',  date:'Jul 14', teamA:'Gan. P97', teamB:'Gan. P98', venue:'Dallas'},
-    {id:'P102',round:'Semifinal',  date:'Jul 15', teamA:'Gan. P99', teamB:'Gan. P100',venue:'Atlanta'},
-    {id:'P103',round:'3er Puesto', date:'Jul 18', teamA:'Per. P101',teamB:'Per. P102',venue:'Miami'},
-    {id:'P104',round:'FINAL 🏆',   date:'Jul 19', teamA:'Gan. P101',teamB:'Gan. P102',venue:'Nueva York'},
+    {id:'P89', round:'Octavos',    date:'2026-07-04',time:'2:00 PM',  teamA:'Gan. P74', teamB:'Gan. P77', venue:'Filadelfia'},
+    {id:'P90', round:'Octavos',    date:'2026-07-04',time:'6:00 PM',  teamA:'Gan. P73', teamB:'Gan. P75', venue:'Houston'},
+    {id:'P91', round:'Octavos',    date:'2026-07-05',time:'2:00 PM',  teamA:'Gan. P76', teamB:'Gan. P78', venue:'Nueva York'},
+    {id:'P92', round:'Octavos',    date:'2026-07-05',time:'6:00 PM',  teamA:'Gan. P79', teamB:'Gan. P80', venue:'Cd. México'},
+    {id:'P93', round:'Octavos',    date:'2026-07-06',time:'2:00 PM',  teamA:'Gan. P83', teamB:'Gan. P84', venue:'Dallas'},
+    {id:'P94', round:'Octavos',    date:'2026-07-06',time:'6:00 PM',  teamA:'Gan. P81', teamB:'Gan. P82', venue:'Seattle'},
+    {id:'P95', round:'Octavos',    date:'2026-07-07',time:'2:00 PM',  teamA:'Gan. P86', teamB:'Gan. P88', venue:'Atlanta'},
+    {id:'P96', round:'Octavos',    date:'2026-07-07',time:'6:00 PM',  teamA:'Gan. P85', teamB:'Gan. P87', venue:'Vancouver'},
+    {id:'P97', round:'Cuartos',    date:'2026-07-09',time:'2:00 PM',  teamA:'Gan. P89', teamB:'Gan. P90', venue:'Boston'},
+    {id:'P98', round:'Cuartos',    date:'2026-07-10',time:'2:00 PM',  teamA:'Gan. P93', teamB:'Gan. P94', venue:'Los Ángeles'},
+    {id:'P99', round:'Cuartos',    date:'2026-07-11',time:'12:00 PM', teamA:'Gan. P91', teamB:'Gan. P92', venue:'Miami'},
+    {id:'P100',round:'Cuartos',    date:'2026-07-11',time:'4:00 PM',  teamA:'Gan. P95', teamB:'Gan. P96', venue:'Kansas City'},
+    {id:'P101',round:'Semifinal',  date:'2026-07-14',time:'2:00 PM',  teamA:'Gan. P97', teamB:'Gan. P98', venue:'Dallas'},
+    {id:'P102',round:'Semifinal',  date:'2026-07-15',time:'2:00 PM',  teamA:'Gan. P99', teamB:'Gan. P100',venue:'Atlanta'},
+    {id:'P103',round:'3er Puesto', date:'2026-07-18',time:'2:00 PM',  teamA:'Per. P101',teamB:'Per. P102',venue:'Miami'},
+    {id:'P104',round:'FINAL 🏆',   date:'2026-07-19',time:'2:00 PM',  teamA:'Gan. P101',teamB:'Gan. P102',venue:'Nueva York'},
 ];
 
 // All matches flat list
@@ -2007,14 +2008,26 @@ function renderUserElimPicks(freshPicks) {
             const realGhB = res.ghB!==undefined&&res.ghB!==''?res.ghB:null;
             const hasReal = realGhA!==null&&realGhB!==null;
             const pts = hasReal&&pickGhA!==''&&pickGhB!=='' ? calcElimPoints(realGhA,realGhB,pickGhA,pickGhB) : null;
+            // Check if match is locked by time (1 min before kickoff)
+            const timeLocked = match.date && match.time ? isMatchLocked(match) : false;
+            const canEdit = isOpen && !timeLocked;
 
             const labelA = match.teamA?.group?`${match.teamA.type==='1st'?'1º':'2º'} Grp ${match.teamA.group}`:(match.teamA?.groups?`3º (${match.teamA.groups})`:match.teamA);
             const labelB = match.teamB?.group?`${match.teamB.type==='1st'?'1º':'2º'} Grp ${match.teamB.group}`:(match.teamB?.groups?`3º (${match.teamB.groups})`:match.teamB);
 
+            // Format date for display
+            let dateStr = '';
+            if (match.date && match.time) {
+                const d = new Date(match.date + 'T12:00:00');
+                const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+                dateStr = `📅 ${dias[d.getDay()]} ${d.getDate()}/${d.getMonth()+1} · 🕐 ${match.time}`;
+            }
+
             h += `<div style="background:#0f1428;border-radius:8px;padding:12px 14px;
-                border-left:3px solid ${isOpen?'#1e3a1e':'#1e2a3a'};">
-                <div style="display:flex;justify-content:space-between;font-size:0.72em;margin-bottom:8px">
-                    <span style="color:#f5c518;font-weight:bold">${id}</span>
+                border-left:3px solid ${timeLocked?'#f44336':(isOpen?'#1e3a1e':'#1e2a3a')};">
+                <div style="display:flex;justify-content:space-between;font-size:0.72em;margin-bottom:8px;flex-wrap:wrap;gap:4px">
+                    <span style="color:#f5c518;font-weight:bold">${id} ${timeLocked?'🔒':''}</span>
+                    <span style="color:#666">${dateStr}</span>
                     ${pts!==null?`<span style="color:#f5c518;font-weight:bold">+${pts} pts</span>`:''}
                 </div>
                 <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;margin-bottom:10px">
@@ -2023,7 +2036,7 @@ function renderUserElimPicks(freshPicks) {
                         <div style="font-weight:bold;font-size:0.88em;color:${teamA==='?'?'#555':'#fff'}">${flag(teamA)} ${teamA}</div>
                     </div>
                     <div style="text-align:center">
-                        ${isOpen?`
+                        ${canEdit?`
                         <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
                             <input type="number" id="upick_ghA_${id}" value="${pickGhA}" placeholder="?" min="0" max="99" step="1"
                                 oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,2)"
@@ -2073,30 +2086,29 @@ function saveUserElimPicks() {
         const newPicks = {};
         let saved = 0;
 
+        const allM = getAllElimMatches();
+        const oldPicks = JSON.parse(localStorage.getItem('wc2026_userpicks')||'{}')[currentUser]||{};
+
         for (const round of ROUNDS_CONFIG) {
-            if (!cfg[round.key]) continue;
             for (const id of round.ids) {
+                const match = allM.find(m=>m.id===id);
+                const timeLocked = match && match.date && match.time ? isMatchLocked(match) : false;
+                // If round is closed OR match is time-locked, keep old pick
+                if (!cfg[round.key] || timeLocked) {
+                    if (oldPicks[id] !== undefined) newPicks[id] = oldPicks[id];
+                    continue;
+                }
                 const ghAEl = document.getElementById('upick_ghA_'+id);
                 const ghBEl = document.getElementById('upick_ghB_'+id);
-                if (!ghAEl || !ghBEl) continue;
+                if (!ghAEl || !ghBEl) {
+                    if (oldPicks[id] !== undefined) newPicks[id] = oldPicks[id];
+                    continue;
+                }
                 const ghA = ghAEl.value.trim();
                 const ghB = ghBEl.value.trim();
-                // Only save if BOTH have values - empty means no pick
                 if (ghA !== '' && ghB !== '') {
                     newPicks[id] = {ghA: parseInt(ghA), ghB: parseInt(ghB)};
                     saved++;
-                }
-                // If empty: simply don't add to newPicks = effectively deleted
-            }
-        }
-
-        // For rounds that are CLOSED, preserve existing picks
-        const oldPicks = JSON.parse(localStorage.getItem('wc2026_userpicks')||'{}')[currentUser]||{};
-        for (const round of ROUNDS_CONFIG) {
-            if (cfg[round.key]) continue; // skip open rounds (already handled)
-            for (const id of round.ids) {
-                if (oldPicks[id] !== undefined) {
-                    newPicks[id] = oldPicks[id]; // keep closed round picks
                 }
             }
         }
